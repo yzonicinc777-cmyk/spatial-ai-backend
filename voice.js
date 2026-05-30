@@ -3,10 +3,9 @@ import {
   recognition, isListening, voiceFinalTranscript, showCompass, compassRing
 } from './state.js';
 import { voiceBar, micBtn, voiceText, voiceWave, compassRing as domCompassRing } from './dom.js';
-import {
-  updateStatus, showToast, vibrate, navigateTo, enterTemplateMode, doScan,
-  autoCaptureTemplate, clearTemplate, setCompassTarget, toggleFlashlight
-} from './ui.js';
+import { updateStatus, showToast, vibrate, navigateTo, enterTemplateMode } from './ui.js';
+import { doScan, autoCaptureTemplate, clearTemplate, toggleFlashlight } from './camera.js';
+import { setCompassTarget } from './sensors.js';
 // Note: doScan, autoCaptureTemplate, clearTemplate, toggleFlashlight are in camera.js,
 // but we will re-export them from ui.js for convenience (see ui.js later).
 
