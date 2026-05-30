@@ -1,13 +1,10 @@
 // ui.js
-import {
-  templateMode, lastDetection, savedTemplates, templateCount, scanCount, saveCount,
-  recognition, isListening
-} from './state.js';
+import { state } from './state.js';
 import {
   toastContainer, modalOverlay, modalTitle, modalBody, setTemplateBtn,
   detectionBuyBtn, modalClose, exploreSearch, poiList, fabBtn, video, detectionBox,
   statsElements, splashScreen, appContainer, bgCanvas, bgCtx, statusText, statusDot,
-  compassRing, offlineToggle, voiceFeedbackToggle
+  compassRing, offlineToggle, voiceFeedbackToggle, templatesList   // ← added templatesList
 } from './dom.js';
 import {
   captureTemplateAt, autoCaptureTemplate, toggleFlashlight, clearTemplate, doScan
@@ -48,7 +45,6 @@ export function navigateTo(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const target = document.getElementById(`${page}-page`);
   if (target) target.classList.add('active');
-  // Query nav buttons directly (no imported binding)
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.classList.toggle('active-nav', btn.getAttribute('data-page') === page);
   });
@@ -71,10 +67,10 @@ export function addRippleEffect(e) {
 
 export function renderTemplatesList() {
   if (!templatesList) return;
-  if (savedTemplates.length === 0) {
+  if (state.savedTemplates.length === 0) {
     templatesList.innerHTML = '<p class="placeholder-text">No templates saved yet</p>';
   } else {
-    templatesList.innerHTML = savedTemplates.map(t =>
+    templatesList.innerHTML = state.savedTemplates.map(t =>
       `<div class="template-item">📸 ${t.id} <span style="font-size:0.7rem;opacity:0.6">${new Date(t.date).toLocaleDateString()}</span></div>`
     ).join('');
   }
@@ -82,19 +78,19 @@ export function renderTemplatesList() {
 
 export function updateStats() {
   if (statsElements && statsElements.length >= 3) {
-    statsElements[0].textContent = scanCount;
-    statsElements[1].textContent = templateCount;
-    statsElements[2].textContent = saveCount;
+    statsElements[0].textContent = state.scanCount;
+    statsElements[1].textContent = state.templateCount;
+    statsElements[2].textContent = state.saveCount;
   }
 }
 
 export function showProductModal() {
-  if (!modalOverlay || !lastDetection) return;
+  if (!modalOverlay || !state.lastDetection) return;
   modalTitle.textContent = 'Product Details';
   modalBody.innerHTML = `
     <p><strong>Detected Object</strong></p>
-    <p>Coordinates: (${Math.round(lastDetection.x)}, ${Math.round(lastDetection.y)})</p>
-    <p>Size: ${lastDetection.w} x ${lastDetection.h}</p>
+    <p>Coordinates: (${Math.round(state.lastDetection.x)}, ${Math.round(state.lastDetection.y)})</p>
+    <p>Size: ${state.lastDetection.w} x ${state.lastDetection.h}</p>
     <button class="affiliate-btn" id="affiliate-link">Buy from Amazon (affiliate)</button>
     <p class="text-muted" style="margin-top:8px;">Coming soon: real product match</p>
   `;
@@ -106,20 +102,19 @@ export function showProductModal() {
 
 // ---------- Template Mode ----------
 export function enterTemplateMode() {
-  templateMode = true;
+  state.templateMode = true;
   setTemplateBtn?.classList.add('mode-active');
   updateStatus('Tap an object to set template');
   vibrate();
 }
 
 export function exitTemplateMode() {
-  templateMode = false;
+  state.templateMode = false;
   setTemplateBtn?.classList.remove('mode-active');
 }
 
 // ---------- Splash & Background ----------
 export function initSplash() {
-  // Variables splashScreen and appContainer are already set by setDomElements
   const hideSplash = () => {
     if (splashScreen) splashScreen.classList.add('hidden');
     if (appContainer) appContainer.style.opacity = '1';
@@ -131,9 +126,7 @@ export function initSplash() {
 }
 
 export function initBackground() {
-  // bgCanvas and bgCtx are already set by setDomElements
   if (!bgCanvas) return;
-  // Ensure bgCtx is set (might not be if canvas failed)
   if (!bgCtx) bgCtx = bgCanvas.getContext('2d');
   let w, h;
   const resize = () => {
@@ -190,7 +183,6 @@ export function initBackground() {
 
 // ---------- Event Binding (called from app.js) ----------
 export function initUI() {
-  // Navigation bar – query and attach events (no import assignment)
   const navBtns = document.querySelectorAll('.nav-btn');
   navBtns.forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -199,7 +191,6 @@ export function initUI() {
     });
   });
 
-  // Quick actions
   const scanBtn = document.getElementById('scanBtn');
   const setTemplateBtnEl = document.getElementById('setTemplateBtn');
   const flashlightBtnEl = document.getElementById('flashlightBtn');
@@ -207,17 +198,15 @@ export function initUI() {
   setTemplateBtnEl?.addEventListener('click', enterTemplateMode);
   flashlightBtnEl?.addEventListener('click', toggleFlashlight);
 
-  // Mic button
   const micBtn = document.getElementById('mic-btn');
   micBtn?.addEventListener('click', () => {
-    if (!recognition) { showToast('Voice not supported', 'error'); return; }
-    if (isListening) recognition.stop();
-    else recognition.start();
+    if (!state.recognition) { showToast('Voice not supported', 'error'); return; }
+    if (state.isListening) state.recognition.stop();
+    else state.recognition.start();
   });
 
-  // Video click for template capture
   video?.addEventListener('click', (e) => {
-    if (!templateMode) return;
+    if (!state.templateMode) return;
     const rect = video.getBoundingClientRect();
     const scaleX = video.videoWidth / rect.width;
     const scaleY = video.videoHeight / rect.height;
@@ -227,11 +216,9 @@ export function initUI() {
     );
   });
 
-  // Detection buy button
   const detectionBuyBtnEl = document.getElementById('detection-buy-btn');
   detectionBuyBtnEl?.addEventListener('click', showProductModal);
 
-  // Modal close
   const modalCloseBtn = document.getElementById('modal-close');
   const modalOverlayEl = document.getElementById('modal-overlay');
   modalCloseBtn?.addEventListener('click', () => modalOverlayEl?.classList.remove('visible'));
@@ -239,7 +226,6 @@ export function initUI() {
     if (e.target === modalOverlayEl) modalOverlayEl.classList.remove('visible');
   });
 
-  // Settings toggles
   const offlineToggleEl = document.getElementById('offline-toggle');
   const voiceFeedbackToggleEl = document.getElementById('voice-feedback-toggle');
   offlineToggleEl?.addEventListener('change', (e) => {
@@ -251,7 +237,6 @@ export function initUI() {
     showToast(`Voice feedback ${e.target.checked ? 'on' : 'off'}`);
   });
 
-  // Explore search
   const exploreSearchEl = document.getElementById('explore-search');
   const poiListEl = document.getElementById('poi-list');
   exploreSearchEl?.addEventListener('input', (e) => {
@@ -263,7 +248,6 @@ export function initUI() {
     }
   });
 
-  // Floating AI Lens button
   const fabBtnEl = document.getElementById('ai-lens-fab');
   fabBtnEl?.addEventListener('click', () => {
     doScan();
@@ -271,7 +255,6 @@ export function initUI() {
     showToast('AI Lens activated – center object scanned');
   });
 
-  // Back buttons
   document.querySelectorAll('.back-btn').forEach(btn => {
     btn.addEventListener('click', () => navigateTo('camera'));
   });

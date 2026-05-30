@@ -1,5 +1,5 @@
 // sensors.js
-import { currentHeading, compassTarget, showCompass, isOnline } from './state.js';
+import { state } from './state.js';
 import { compassRing, compassBadge, gpsBadge, batteryBadge, networkBadge, clockEl } from './dom.js';
 import { updateStatus } from './ui.js';
 
@@ -12,12 +12,12 @@ updateClock();
 
 export function updateNetworkStatus() {
   if (networkBadge) {
-    networkBadge.textContent = isOnline ? '🌐' : '🚫';
-    networkBadge.className = `status-badge ${isOnline ? 'online' : ''}`;
+    networkBadge.textContent = state.isOnline ? '🌐' : '🚫';
+    networkBadge.className = `status-badge ${state.isOnline ? 'online' : ''}`;
   }
 }
-window.addEventListener('online', () => { isOnline = true; updateNetworkStatus(); });
-window.addEventListener('offline', () => { isOnline = false; updateNetworkStatus(); });
+window.addEventListener('online', () => { state.isOnline = true; updateNetworkStatus(); });
+window.addEventListener('offline', () => { state.isOnline = false; updateNetworkStatus(); });
 updateNetworkStatus();
 
 export function updateBattery() {
@@ -60,7 +60,7 @@ export function initCompass() {
   }
   const handleOrientation = (e) => {
     if (e.alpha !== null) {
-      currentHeading = e.alpha;
+      state.currentHeading = e.alpha;
       updateCompassUI();
     }
   };
@@ -80,15 +80,15 @@ export function initCompass() {
 
 export function updateCompassUI() {
   if (compassBadge) {
-    compassBadge.textContent = `🧭 ${currentHeading !== null ? Math.round(currentHeading) + '°' : '--°'}`;
+    compassBadge.textContent = `🧭 ${state.currentHeading !== null ? Math.round(state.currentHeading) + '°' : '--°'}`;
   }
-  if (compassRing && !compassRing.classList.contains('hidden') && currentHeading !== null) {
-    compassRing.style.transform = `rotate(${compassTarget - currentHeading}deg)`;
+  if (compassRing && !compassRing.classList.contains('hidden') && state.currentHeading !== null) {
+    compassRing.style.transform = `rotate(${state.compassTarget - state.currentHeading}deg)`;
   }
 }
 
 export function setCompassTarget(deg) {
-  compassTarget = deg;
+  state.compassTarget = deg;
   if (compassRing) compassRing.classList.remove('hidden');
   updateCompassUI();
 }

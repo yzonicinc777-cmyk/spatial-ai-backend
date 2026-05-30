@@ -1,13 +1,9 @@
 // voice.js
-import {
-  recognition, isListening, voiceFinalTranscript, showCompass
-} from './state.js';
-import { voiceBar, micBtn, voiceText, voiceWave, compassRing as domCompassRing } from './dom.js';
+import { state } from './state.js';
+import { voiceBar, micBtn, voiceText, voiceWave, compassRing } from './dom.js';
 import { updateStatus, showToast, vibrate, navigateTo, enterTemplateMode } from './ui.js';
 import { doScan, autoCaptureTemplate, clearTemplate, toggleFlashlight } from './camera.js';
 import { setCompassTarget } from './sensors.js';
-// Note: doScan, autoCaptureTemplate, clearTemplate, toggleFlashlight are in camera.js,
-// but we will re-export them from ui.js for convenience (see ui.js later).
 
 export function initVoice() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -15,13 +11,13 @@ export function initVoice() {
     if (micBtn) micBtn.style.display = 'none';
     return;
   }
-  recognition = new SpeechRecognition();
-  recognition.continuous = false;
-  recognition.interimResults = true;
-  recognition.lang = 'en-US';
+  state.recognition = new SpeechRecognition();
+  state.recognition.continuous = false;
+  state.recognition.interimResults = true;
+  state.recognition.lang = 'en-US';
 
-  recognition.onstart = () => {
-    isListening = true;
+  state.recognition.onstart = () => {
+    state.isListening = true;
     voiceBar?.classList.add('listening');
     voiceWave?.classList.add('listening');
     micBtn?.classList.add('listening');
@@ -29,8 +25,8 @@ export function initVoice() {
     updateStatus('Voice active');
   };
 
-  recognition.onerror = (e) => {
-    isListening = false;
+  state.recognition.onerror = (e) => {
+    state.isListening = false;
     voiceBar?.classList.remove('listening');
     voiceWave?.classList.remove('listening');
     micBtn?.classList.remove('listening');
@@ -39,28 +35,28 @@ export function initVoice() {
     showToast(`Voice error: ${e.error}`, 'error');
   };
 
-  recognition.onend = () => {
-    isListening = false;
+  state.recognition.onend = () => {
+    state.isListening = false;
     voiceBar?.classList.remove('listening');
     voiceWave?.classList.remove('listening');
     micBtn?.classList.remove('listening');
-    if (voiceText) voiceText.textContent = voiceFinalTranscript || 'Say "find red shoes near me"';
-    voiceFinalTranscript = '';
+    if (voiceText) voiceText.textContent = state.voiceFinalTranscript || 'Say "find red shoes near me"';
+    state.voiceFinalTranscript = '';
     updateStatus('Ready');
   };
 
-  recognition.onresult = (e) => {
+  state.recognition.onresult = (e) => {
     let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
       if (e.results[i].isFinal) {
-        voiceFinalTranscript += e.results[i][0].transcript;
+        state.voiceFinalTranscript += e.results[i][0].transcript;
       } else {
         interim += e.results[i][0].transcript;
       }
     }
-    if (voiceText) voiceText.textContent = voiceFinalTranscript || interim || 'Listening...';
-    if (voiceFinalTranscript) {
-      handleVoiceCommand(voiceFinalTranscript.trim().toLowerCase());
+    if (voiceText) voiceText.textContent = state.voiceFinalTranscript || interim || 'Listening...';
+    if (state.voiceFinalTranscript) {
+      handleVoiceCommand(state.voiceFinalTranscript.trim().toLowerCase());
     }
   };
 }
@@ -76,12 +72,12 @@ export function handleVoiceCommand(cmd) {
   } else if (cmd.includes('reset template') || cmd.includes('clear template')) {
     clearTemplate();
   } else if (cmd.includes('show compass')) {
-    showCompass = true;
-    if (domCompassRing) domCompassRing.classList.remove('hidden');
+    state.showCompass = true;
+    if (compassRing) compassRing.classList.remove('hidden');
     updateStatus('Compass visible');
   } else if (cmd.includes('hide compass')) {
-    showCompass = false;
-    if (domCompassRing) domCompassRing.classList.add('hidden');
+    state.showCompass = false;
+    if (compassRing) compassRing.classList.add('hidden');
     updateStatus('Compass hidden');
   } else if (cmd.includes('point to north'))  setCompassTarget(0);
   else if (cmd.includes('point to east'))     setCompassTarget(90);

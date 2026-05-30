@@ -1,26 +1,20 @@
 // camera.js
-import {
-  detectionWorker, captureCanvas, captureCtx, workerReady, frameSkip, FRAME_SKIP,
-  templateMode, templateCount, lastDetection, flashlightTrack, isOnline
-} from './state.js';
+import { state } from './state.js';
 import {
   video, overlayCanvas, overlayCtx, detectionBox, detectionLabel, detectionDistance,
   detectionBuyBtn
 } from './dom.js';
-
-import { compassTarget, currentHeading } from './state.js';
-
 import {
   updateStatus, showToast, updateStats, exitTemplateMode, navigateTo
 } from './ui.js';
 import { saveTemplateToDB } from './store.js';
 
 export function initDetectionWorker() {
-  detectionWorker = new Worker('detection.worker.js', { type: 'module' });
-  detectionWorker.onmessage = (e) => {
+  state.detectionWorker = new Worker('detection.worker.js', { type: 'module' });
+  state.detectionWorker.onmessage = (e) => {
     const { type, matches, error } = e.data;
     if (type === 'ready') {
-      workerReady = true;
+      state.workerReady = true;
       updateStatus('AI engine ready');
       showToast('AI Lens active', 'success');
     } else if (type === 'result') {
@@ -36,7 +30,7 @@ export function initDetectionWorker() {
       showToast('Template cleared', 'info');
     }
   };
-  detectionWorker.postMessage({ type: 'init' });
+  state.detectionWorker.postMessage({ type: 'init' });
 }
 
 export function drawMatches(matches) {
@@ -68,33 +62,33 @@ export function updateDetectionBoxUI(match, canvasWidth, canvasHeight) {
   detectionBox.style.height = match.height * scaleY + 'px';
   if (detectionLabel) detectionLabel.textContent = `${Math.round(match.confidence * 100)}% match`;
   if (detectionDistance) detectionDistance.textContent = match.scale !== 1.0 ? `scale ${match.scale.toFixed(1)}×` : '~1.5m';
-  lastDetection = match;
+  state.lastDetection = match;
 }
 
 export function hideDetectionBox() {
   if (detectionBox && !detectionBox.classList.contains('hidden')) detectionBox.classList.add('hidden');
-  lastDetection = null;
+  state.lastDetection = null;
 }
 
 export async function captureTemplateAt(x, y) {
   if (!video || video.readyState < 2) return;
-  if (!captureCanvas || !captureCtx) return;
+  if (!state.captureCanvas || !state.captureCtx) return;
 
   const w = video.videoWidth, h = video.videoHeight;
-  if (captureCanvas.width !== w || captureCanvas.height !== h) {
-    captureCanvas.width = w;
-    captureCanvas.height = h;
+  if (state.captureCanvas.width !== w || state.captureCanvas.height !== h) {
+    state.captureCanvas.width = w;
+    state.captureCanvas.height = h;
   }
-  captureCtx.drawImage(video, 0, 0, w, h);
+  state.captureCtx.drawImage(video, 0, 0, w, h);
 
   x = Math.max(0, Math.min(x, w - 50));
   y = Math.max(0, Math.min(y, h - 50));
-  const imgData = captureCtx.getImageData(x, y, 50, 50);
-  detectionWorker.postMessage({
+  const imgData = state.captureCtx.getImageData(x, y, 50, 50);
+  state.detectionWorker.postMessage({
     type: 'set_template',
     payload: { data: imgData.data, width: 50, height: 50 }
   });
-  templateCount++;
+  state.templateCount++;
   updateStats();
   saveTemplateToDB(`capture_${Date.now()}`, imgData.data.buffer);
 }
@@ -105,8 +99,8 @@ export function autoCaptureTemplate() {
 }
 
 export function clearTemplate() {
-  if (detectionWorker) {
-    detectionWorker.postMessage({ type: 'clear_template' });
+  if (state.detectionWorker) {
+    state.detectionWorker.postMessage({ type: 'clear_template' });
     updateStatus('Template cleared');
     exitTemplateMode();
     showToast('Template cleared', 'info');
@@ -114,29 +108,28 @@ export function clearTemplate() {
 }
 
 export function startFrameCapture() {
-  // Create reusable canvas (if not already created in initCamera)
-  if (!captureCanvas) {
-    captureCanvas = document.createElement('canvas');
-    captureCtx = captureCanvas.getContext('2d', { willReadFrequently: true });
+  if (!state.captureCanvas) {
+    state.captureCanvas = document.createElement('canvas');
+    state.captureCtx = state.captureCanvas.getContext('2d', { willReadFrequently: true });
   }
 
   let lastW = 0, lastH = 0;
 
   const processFrame = () => {
-    if (!workerReady || !video.videoWidth) {
+    if (!state.workerReady || !video.videoWidth) {
       requestAnimationFrame(processFrame);
       return;
     }
-    if (frameSkip++ % FRAME_SKIP === 0) {
+    if (state.frameSkip++ % state.FRAME_SKIP === 0) {
       const w = video.videoWidth, h = video.videoHeight;
       if (w !== lastW || h !== lastH) {
-        captureCanvas.width = w;
-        captureCanvas.height = h;
+        state.captureCanvas.width = w;
+        state.captureCanvas.height = h;
         lastW = w; lastH = h;
       }
-      captureCtx.drawImage(video, 0, 0);
-      const imageData = captureCtx.getImageData(0, 0, w, h);
-      detectionWorker.postMessage(
+      state.captureCtx.drawImage(video, 0, 0);
+      const imageData = state.captureCtx.getImageData(0, 0, w, h);
+      state.detectionWorker.postMessage(
         { type: 'detect', payload: { imageData: imageData.data, width: w, height: h } },
         [imageData.data.buffer]
       );
@@ -155,18 +148,18 @@ export async function initCamera() {
     video.srcObject = stream;
     await video.play();
 
-    if (!captureCanvas) {
-      captureCanvas = document.createElement('canvas');
-      captureCtx = captureCanvas.getContext('2d');
+    if (!state.captureCanvas) {
+      state.captureCanvas = document.createElement('canvas');
+      state.captureCtx = state.captureCanvas.getContext('2d');
     }
 
     const resizeCanvas = () => {
       if (video.videoWidth) {
         overlayCanvas.width = video.videoWidth;
         overlayCanvas.height = video.videoHeight;
-        if (captureCanvas) {
-          captureCanvas.width = video.videoWidth;
-          captureCanvas.height = video.videoHeight;
+        if (state.captureCanvas) {
+          state.captureCanvas.width = video.videoWidth;
+          state.captureCanvas.height = video.videoHeight;
         }
       }
     };
@@ -181,7 +174,6 @@ export async function initCamera() {
     startFrameCapture();
 
     setInterval(aiDetectFrame, 2000);
-
   } catch (err) {
     updateStatus(`Camera denied: ${err.message}`, true);
     showToast('Camera permission required', 'error');
@@ -191,7 +183,7 @@ export async function initCamera() {
 export function drawCompassArrow(canvasWidth, canvasHeight) {
   if (!overlayCtx) return;
   const cx = canvasWidth - 70, cy = canvasHeight - 70;
-  const angleRad = ((compassTarget - currentHeading) * Math.PI) / 180;
+  const angleRad = ((state.compassTarget - state.currentHeading) * Math.PI) / 180;
   const len = 45;
   const ex = cx + Math.sin(angleRad) * len;
   const ey = cy - Math.cos(angleRad) * len;
@@ -231,13 +223,13 @@ export async function toggleFlashlight() {
   const track = stream.getVideoTracks()[0];
   if (!track) return;
   try {
-    if (flashlightTrack) {
+    if (state.flashlightTrack) {
       await track.applyConstraints({ advanced: [{ torch: false }] });
-      flashlightTrack = null;
+      state.flashlightTrack = null;
       showToast('Flashlight off');
     } else {
       await track.applyConstraints({ advanced: [{ torch: true }] });
-      flashlightTrack = track;
+      state.flashlightTrack = track;
       showToast('Flashlight on');
     }
   } catch (err) {
@@ -246,12 +238,12 @@ export async function toggleFlashlight() {
 }
 
 async function aiDetectFrame() {
-  if (!captureCanvas) return;
-  captureCanvas.toBlob(async (blob) => {
+  if (!state.captureCanvas) return;
+  state.captureCanvas.toBlob(async (blob) => {
     const fd = new FormData();
     fd.append('file', blob, 'frame.jpg');
     try {
-     const res = await fetch('https://spatial-ai-backend-production.up.railway.app/api/detect', {
+      const res = await fetch('https://spatial-ai-backend-production.up.railway.app/api/detect', {
         method: 'POST', body: fd
       });
       const { detections } = await res.json();
@@ -265,5 +257,5 @@ async function aiDetectFrame() {
         })));
       }
     } catch (e) { /* server offline, fall back to WASM */ }
-  }, 'image/jpeg', 0.7);  // 70% quality JPEG for speed
+  }, 'image/jpeg', 0.7);
 }

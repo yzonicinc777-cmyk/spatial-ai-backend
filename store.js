@@ -1,9 +1,7 @@
 // store.js
-import { savedTemplates, templateCount, saveCount, scanCount } from './state.js';
+import { state } from './state.js';
 import { templatesList, offlineToggle, voiceFeedbackToggle, statsElements } from './dom.js';
 import { showToast, updateStats as uiUpdateStats, renderTemplatesList as uiRenderTemplatesList } from './ui.js';
-// Note: we import updateStats and renderTemplatesList from ui.js to avoid circular dependency.
-// They will be defined in ui.js.
 
 export function openDB() {
   return new Promise((resolve, reject) => {
@@ -32,9 +30,9 @@ export async function saveTemplateToDB(id, buffer) {
       tx.onerror = () => reject(tx.error);
       tx.onabort = () => reject(tx.error);
     });
-    savedTemplates.push({ id, date: Date.now() });
+    state.savedTemplates.push({ id, date: Date.now() });
     uiRenderTemplatesList();
-    saveCount++;
+    state.saveCount++;
     uiUpdateStats();
   } catch (err) {
     console.error('Save template failed:', err);
@@ -51,10 +49,10 @@ export async function loadTemplatesFromDB() {
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
-    savedTemplates.length = 0;
-    savedTemplates.push(...results.map(r => ({ id: r.id, date: r.date })));
+    state.savedTemplates.length = 0;
+    state.savedTemplates.push(...results.map(r => ({ id: r.id, date: r.date })));
     uiRenderTemplatesList();
-    templateCount = savedTemplates.length;
+    state.templateCount = state.savedTemplates.length;
     uiUpdateStats();
   } catch (err) {
     console.error('Load templates failed:', err);

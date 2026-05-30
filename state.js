@@ -1,30 +1,32 @@
-// state.js
-export let wasmReady = false;
-export let templateMode = false;
+// state.js – mutable object for all shared state
+export const state = {
+  wasmReady: false,
+  templateMode: false,
 
-export let currentHeading = null;
-export let compassTarget = 0;
-export let showCompass = true;
+  currentHeading: null,
+  compassTarget: 0,
+  showCompass: true,
 
-export let recognition = null;
-export let isListening = false;
-export let voiceFinalTranscript = '';
+  recognition: null,
+  isListening: false,
+  voiceFinalTranscript: '',
 
-export let savedTemplates = [];
+  savedTemplates: [],
 
-export let scanCount = 0;
-export let templateCount = 0;
-export let saveCount = 0;
+  scanCount: 0,
+  templateCount: 0,
+  saveCount: 0,
 
-export let flashlightTrack = null;
+  flashlightTrack: null,
 
-export let isOnline = navigator.onLine;
+  isOnline: navigator.onLine,
 
-export let lastDetection = null;
+  lastDetection: null,
 
-export let detectionWorker = null;
-export let captureCanvas = null;
-export let captureCtx = null;
-export let workerReady = false;
-export let frameSkip = 0;
-export const FRAME_SKIP = 3;
+  detectionWorker: null,
+  captureCanvas: null,
+  captureCtx: null,
+  workerReady: false,
+  frameSkip: 0,
+  FRAME_SKIP: 3,
+};
