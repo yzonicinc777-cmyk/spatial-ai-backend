@@ -5,53 +5,56 @@ import { initCompass, updateClock, updateGPS, updateBattery } from './sensors.js
 import { initVoice } from './voice.js';
 import { loadSettings, loadTemplatesFromDB } from './store.js';
 import { initUI, initSplash, initBackground, updateStatus, showToast } from './ui.js';
-
-// Populate DOM references (these are exported from dom.js but need to be assigned)
-// We'll just grab the elements directly here and assign to the exported variables.
-import * as dom from './dom.js';
+import { setDomElements } from './dom.js';  // ← new import
 
 async function start() {
   // Get DOM elements
   const get = id => document.getElementById(id);
-  dom.splashScreen = get('splash-screen');
-  dom.appContainer = get('app');
-  dom.bgCanvas = get('bg-canvas');
-  dom.clockEl = get('clock');
-  dom.gpsBadge = get('gps-badge');
-  dom.compassBadge = get('compass-badge');
-  dom.batteryBadge = get('battery-badge');
-  dom.networkBadge = get('network-badge');
-  dom.statusText = get('status-text');
-  dom.statusDot = document.querySelector('.status-dot');
-  dom.video = get('video');
-  dom.overlayCanvas = get('overlay-canvas');
-  dom.overlayCtx = dom.overlayCanvas?.getContext('2d');
-  dom.detectionBox = get('detection-box');
-  dom.detectionLabel = get('detection-label');
-  dom.detectionDistance = get('detection-distance');
-  dom.detectionBuyBtn = get('detection-buy-btn');
-  dom.compassRing = get('compass-ring');
-  dom.voiceBar = get('voice-bar');
-  dom.micBtn = get('mic-btn');
-  dom.voiceText = get('voice-text');
-  dom.voiceWave = get('voice-wave');
-  dom.scanBtn = get('scanBtn');
-  dom.setTemplateBtn = get('setTemplateBtn');
-  dom.flashlightBtn = get('flashlightBtn');
-  dom.exploreSearch = get('explore-search');
-  dom.mapContainer = get('map-container');
-  dom.poiList = get('poi-list');
-  dom.templatesList = get('templates-list');
-  dom.offlineToggle = get('offline-toggle');
-  dom.voiceFeedbackToggle = get('voice-feedback-toggle');
-  dom.statsElements = document.querySelectorAll('.stat strong');
-  dom.navBar = get('nav-bar');
-  dom.fabBtn = get('ai-lens-fab');
-  dom.toastContainer = get('toast-container');
-  dom.modalOverlay = get('modal-overlay');
-  dom.modalTitle = get('modal-title');
-  dom.modalBody = get('modal-body');
-  dom.modalClose = get('modal-close');
+  
+  // Collect all DOM references in an object
+  const elements = {
+    splashScreen: get('splash-screen'),
+    appContainer: get('app'),
+    bgCanvas: get('bg-canvas'),
+    clockEl: get('clock'),
+    gpsBadge: get('gps-badge'),
+    compassBadge: get('compass-badge'),
+    batteryBadge: get('battery-badge'),
+    networkBadge: get('network-badge'),
+    statusText: get('status-text'),
+    statusDot: document.querySelector('.status-dot'),
+    video: get('video'),
+    overlayCanvas: get('overlay-canvas'),
+    detectionBox: get('detection-box'),
+    detectionLabel: get('detection-label'),
+    detectionDistance: get('detection-distance'),
+    detectionBuyBtn: get('detection-buy-btn'),
+    compassRing: get('compass-ring'),
+    voiceBar: get('voice-bar'),
+    micBtn: get('mic-btn'),
+    voiceText: get('voice-text'),
+    voiceWave: get('voice-wave'),
+    scanBtn: get('scanBtn'),
+    setTemplateBtn: get('setTemplateBtn'),
+    flashlightBtn: get('flashlightBtn'),
+    exploreSearch: get('explore-search'),
+    mapContainer: get('map-container'),
+    poiList: get('poi-list'),
+    templatesList: get('templates-list'),
+    offlineToggle: get('offline-toggle'),
+    voiceFeedbackToggle: get('voice-feedback-toggle'),
+    statsElements: document.querySelectorAll('.stat strong'),
+    navBar: get('nav-bar'),
+    fabBtn: get('ai-lens-fab'),
+    toastContainer: get('toast-container'),
+    modalOverlay: get('modal-overlay'),
+    modalTitle: get('modal-title'),
+    modalBody: get('modal-body'),
+    modalClose: get('modal-close'),
+  };
+
+  // Assign them to the module variables in dom.js
+  setDomElements(elements);
 
   const hideSplash = initSplash();
   initBackground();
@@ -79,7 +82,7 @@ async function start() {
     await initCamera();
     updateStatus('Tap object or use voice');
   };
-  document.body.addEventListener('click',    startCameraOnInteraction, { once: true });
+  document.body.addEventListener('click', startCameraOnInteraction, { once: true });
   document.body.addEventListener('touchend', startCameraOnInteraction, { once: true });
 
   initUI();
