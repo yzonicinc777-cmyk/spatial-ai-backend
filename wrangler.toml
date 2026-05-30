@@ -1,6 +1,0 @@
-name = "spatial-ai-explorer"
-pages_build_output_dir = "."
-compatibility_date = "2025-01-01"
-
-[env.production]
-name = "spatial-ai-explorer"
