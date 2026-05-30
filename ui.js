@@ -1,18 +1,14 @@
-// ui.js
 import { state } from './state.js';
 import {
   toastContainer, modalOverlay, modalTitle, modalBody, setTemplateBtn,
   detectionBuyBtn, modalClose, exploreSearch, poiList, fabBtn, video, detectionBox,
   statsElements, splashScreen, appContainer, bgCanvas, bgCtx, statusText, statusDot,
-  compassRing, offlineToggle, voiceFeedbackToggle, templatesList   // ← added templatesList
+  compassRing, offlineToggle, voiceFeedbackToggle, templatesList   // ← templatesList is here
 } from './dom.js';
-import {
-  captureTemplateAt, autoCaptureTemplate, toggleFlashlight, clearTemplate, doScan
-} from './camera.js';
+import { captureTemplateAt, autoCaptureTemplate, toggleFlashlight, clearTemplate, doScan } from './camera.js';
 import { saveSetting } from './store.js';
 import { setCompassTarget } from './sensors.js';
 
-// ---------- UI Helpers ----------
 export function updateStatus(msg, isWarning = false) {
   if (statusText) statusText.textContent = msg;
   if (statusDot) {
@@ -66,7 +62,7 @@ export function addRippleEffect(e) {
 }
 
 export function renderTemplatesList() {
-  if (!templatesList) return;
+  if (!templatesList) return;  // now templatesList is defined
   if (state.savedTemplates.length === 0) {
     templatesList.innerHTML = '<p class="placeholder-text">No templates saved yet</p>';
   } else {
@@ -100,7 +96,6 @@ export function showProductModal() {
   });
 }
 
-// ---------- Template Mode ----------
 export function enterTemplateMode() {
   state.templateMode = true;
   setTemplateBtn?.classList.add('mode-active');
@@ -113,7 +108,6 @@ export function exitTemplateMode() {
   setTemplateBtn?.classList.remove('mode-active');
 }
 
-// ---------- Splash & Background ----------
 export function initSplash() {
   const hideSplash = () => {
     if (splashScreen) splashScreen.classList.add('hidden');
@@ -181,7 +175,6 @@ export function initBackground() {
   draw();
 }
 
-// ---------- Event Binding (called from app.js) ----------
 export function initUI() {
   const navBtns = document.querySelectorAll('.nav-btn');
   navBtns.forEach(btn => {

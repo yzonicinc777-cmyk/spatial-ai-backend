@@ -1,28 +1,19 @@
-// state.js – mutable object for all shared state
 export const state = {
   wasmReady: false,
   templateMode: false,
-
   currentHeading: null,
   compassTarget: 0,
   showCompass: true,
-
   recognition: null,
   isListening: false,
   voiceFinalTranscript: '',
-
   savedTemplates: [],
-
   scanCount: 0,
   templateCount: 0,
   saveCount: 0,
-
   flashlightTrack: null,
-
   isOnline: navigator.onLine,
-
   lastDetection: null,
-
   detectionWorker: null,
   captureCanvas: null,
   captureCtx: null,

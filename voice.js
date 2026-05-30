@@ -1,4 +1,3 @@
-// voice.js
 import { state } from './state.js';
 import { voiceBar, micBtn, voiceText, voiceWave, compassRing } from './dom.js';
 import { updateStatus, showToast, vibrate, navigateTo, enterTemplateMode } from './ui.js';
