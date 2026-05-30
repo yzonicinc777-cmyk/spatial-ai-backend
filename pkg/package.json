@@ -1,0 +1,15 @@
+{
+  "name": "spatial_explorer_core",
+  "type": "module",
+  "version": "0.2.0",
+  "files": [
+    "spatial_explorer_core_bg.wasm",
+    "spatial_explorer_core.js",
+    "spatial_explorer_core.d.ts"
+  ],
+  "main": "spatial_explorer_core.js",
+  "types": "spatial_explorer_core.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
