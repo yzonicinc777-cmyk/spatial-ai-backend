@@ -1,4 +1,4 @@
-/// dom.js – individual exported variables (mutable, can be assigned via setDomElements)
+// dom.js – individual exported variables (mutable, can be assigned via setDomElements)
 export let splashScreen, appContainer, bgCanvas, bgCtx;
 export let clockEl, gpsBadge, compassBadge, batteryBadge, networkBadge, statusText, statusDot;
 export let video, overlayCanvas, overlayCtx;
@@ -9,7 +9,7 @@ export let quickActions, scanBtn, setTemplateBtn, flashlightBtn;
 export let exploreSearch, mapContainer, poiList;
 export let templatesList, offlineToggle, voiceFeedbackToggle;
 export let statsElements;
-export let navBar, navBtns;
+export let navBar;   // navBar is still used? Keep if needed
 export let fabBtn;
 export let toastContainer;
 export let modalOverlay, modalTitle, modalBody, modalClose;

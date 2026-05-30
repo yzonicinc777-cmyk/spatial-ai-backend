@@ -1,10 +1,10 @@
 // ui.js
 import {
   templateMode, lastDetection, savedTemplates, templateCount, scanCount, saveCount,
-  recognition, isListening, templateMode as stateTemplateMode
+  recognition, isListening
 } from './state.js';
 import {
-  toastContainer, modalOverlay, modalTitle, modalBody, navBtns, setTemplateBtn,
+  toastContainer, modalOverlay, modalTitle, modalBody, setTemplateBtn,
   detectionBuyBtn, modalClose, exploreSearch, poiList, fabBtn, video, detectionBox,
   statsElements, splashScreen, appContainer, bgCanvas, bgCtx, statusText, statusDot,
   compassRing, offlineToggle, voiceFeedbackToggle
@@ -13,7 +13,7 @@ import {
   captureTemplateAt, autoCaptureTemplate, toggleFlashlight, clearTemplate, doScan
 } from './camera.js';
 import { saveSetting } from './store.js';
-import { setCompassTarget } from './sensors.js'; // for voice command
+import { setCompassTarget } from './sensors.js';
 
 // ---------- UI Helpers ----------
 export function updateStatus(msg, isWarning = false) {
@@ -48,7 +48,8 @@ export function navigateTo(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const target = document.getElementById(`${page}-page`);
   if (target) target.classList.add('active');
-  navBtns?.forEach(btn => {
+  // Query nav buttons directly (no imported binding)
+  document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.classList.toggle('active-nav', btn.getAttribute('data-page') === page);
   });
   vibrate(15);
@@ -118,8 +119,7 @@ export function exitTemplateMode() {
 
 // ---------- Splash & Background ----------
 export function initSplash() {
-  splashScreen = document.getElementById('splash-screen');
-  appContainer = document.getElementById('app');
+  // Variables splashScreen and appContainer are already set by setDomElements
   const hideSplash = () => {
     if (splashScreen) splashScreen.classList.add('hidden');
     if (appContainer) appContainer.style.opacity = '1';
@@ -131,9 +131,10 @@ export function initSplash() {
 }
 
 export function initBackground() {
-  bgCanvas = document.getElementById('bg-canvas');
+  // bgCanvas and bgCtx are already set by setDomElements
   if (!bgCanvas) return;
-  bgCtx = bgCanvas.getContext('2d');
+  // Ensure bgCtx is set (might not be if canvas failed)
+  if (!bgCtx) bgCtx = bgCanvas.getContext('2d');
   let w, h;
   const resize = () => {
     w = bgCanvas.width = window.innerWidth;
@@ -189,8 +190,8 @@ export function initBackground() {
 
 // ---------- Event Binding (called from app.js) ----------
 export function initUI() {
-  // Navigation bar
-  navBtns = document.querySelectorAll('.nav-btn');
+  // Navigation bar – query and attach events (no import assignment)
+  const navBtns = document.querySelectorAll('.nav-btn');
   navBtns.forEach(btn => {
     btn.addEventListener('click', (e) => {
       navigateTo(btn.getAttribute('data-page'));
