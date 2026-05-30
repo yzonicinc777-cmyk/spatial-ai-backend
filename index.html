@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0, interactive-widget=resizes-content" />
+  <title>Spatial AI • Explorer</title>
+  <meta name="description" content="Point your camera, find anything. A spatial browser for the real world." />
+  <meta name="theme-color" content="#0a0f1c" />
+
+  <!-- PWA / mobile shell -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Spatial AI" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="manifest" href="/manifest.json" />
+
+  <!-- Favicon (inline SVG data URI — eliminates the 404) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='28' fill='none' stroke='%2300d4ff' stroke-width='4'/><polygon points='32,14 36,28 50,32 36,36 32,50 28,36 14,32 28,28' fill='%2300d4ff'/></svg>" type="image/svg+xml" />
+
+  <!-- Security -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Permissions-Policy" content="camera=*, microphone=*, geolocation=*, gyroscope=*, magnetometer=*" />
+
+  <!--
+    Content-Security-Policy:
+    - wasm-unsafe-eval is required for WebAssembly (replaces unsafe-eval where possible)
+    - blob: in worker-src allows the service worker
+  -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src 'self' https://fonts.gstatic.com;
+    img-src 'self' data: blob: https://*.tile.openstreetmap.org;
+    connect-src 'self' https://overpass-api.de https://nominatim.openstreetmap.org https://*.cloudflare.com https://*.amazonaws.com;
+    media-src 'self' blob:;
+    worker-src 'self' blob:;
+    manifest-src 'self';
+  " />
+
+  <!-- Stylesheet (preload + load; crossorigin="anonymous" matches module fetch mode) -->
+  <link rel="preload" href="/style.css" as="style" />
+<link rel="stylesheet" href="/style.css" />
+  <!--
+    app.js is a JS module (type="module"), so the browser fetches it with
+    credentials mode "omit" by default. The preload must carry
+    crossorigin="anonymous" to match, otherwise the browser ignores the
+    preload cache and re-fetches — generating the "not used" warning.
+  -->
+  <link rel="modulepreload" href="/app.js" crossorigin="anonymous" />
+  <link rel="modulepreload" href="/pkg/spatial_explorer_core.js" crossorigin="anonymous" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ============= SPLASH SCREEN ============= -->
+  <div id="splash-screen" class="splash-screen">
+    <div class="splash-content">
+      <div class="splash-logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 64 64" class="logo-svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="splashGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00d4ff" />
+                <stop offset="100%" stop-color="#7b2ff7" />
+              </linearGradient>
+            </defs>
+            <circle cx="32" cy="32" r="28" fill="none" stroke="url(#splashGradient)" stroke-width="2"
+              stroke-dasharray="175" stroke-dashoffset="175">
+              <animate attributeName="stroke-dashoffset" from="175" to="0" dur="1.2s" fill="freeze" />
+            </circle>
+          </svg>
+        </div>
+        <h1 class="splash-title">
+          <span>Spatial</span>
+          <span class="accent">AI</span>
+        </h1>
+        <p class="splash-sub">explore the world through your lens</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============= DYNAMIC BACKGROUND (particle canvas) ============= -->
+  <canvas id="bg-canvas" class="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- ============= APP CONTAINER ============= -->
+  <div id="app" class="app-container" style="opacity:0;">
+
+    <!-- ============= STATUS BAR ============= -->
+    <header class="status-bar" role="banner">
+      <div class="status-left">
+        <span id="clock" class="status-time" aria-live="off">12:00</span>
+      </div>
+      <div class="status-center">
+        <div class="status-indicator" id="status-indicator" role="status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="status-text">Ready</span>
+        </div>
+      </div>
+      <div class="status-right">
+        <span id="gps-badge"     class="status-badge" title="GPS accuracy">📍 Lock</span>
+        <span id="compass-badge" class="status-badge" title="Compass heading">🧭 --°</span>
+        <span id="battery-badge" class="status-badge" title="Battery level">🔋 --</span>
+        <span id="network-badge" class="status-badge online" title="Network status">🌐</span>
+      </div>
+    </header>
+
+    <!-- ============= MAIN PAGES ============= -->
+    <main class="main-content" role="main">
+
+      <!-- ── Camera Page ── -->
+      <section id="camera-page" class="page active" aria-label="Camera view">
+        <div class="camera-container">
+          <video id="video" autoplay playsinline muted disablePictureInPicture
+            aria-label="Live camera feed"></video>
+          <canvas id="overlay-canvas" class="overlay-canvas" aria-hidden="true"></canvas>
+
+          <!-- AR Detection Box -->
+          <div id="detection-box" class="detection-box hidden" role="status" aria-live="polite">
+            <div class="detection-label"   id="detection-label">Object</div>
+            <div class="detection-distance" id="detection-distance">2.3 m</div>
+            <button class="detection-buy-btn" id="detection-buy-btn" aria-label="Buy detected object">Buy →</button>
+          </div>
+
+          <!-- Compass Ring -->
+          <div id="compass-ring" class="compass-ring hidden" aria-hidden="true">
+            <svg viewBox="0 0 120 120" class="compass-svg">
+              <defs>
+                <linearGradient id="compassGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#00d4ff" />
+                  <stop offset="100%" stop-color="#7b2ff7" />
+                </linearGradient>
+              </defs>
+              <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2" />
+              <circle cx="60" cy="60" r="48" fill="none" stroke="url(#compassGradient)"
+                stroke-width="4" stroke-dasharray="301" stroke-dashoffset="0" />
+              <polygon points="60,20 64,55 95,60 64,65 60,100 56,65 25,60 56,55" fill="white" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Voice Command Bar -->
+        <div class="voice-command-bar" id="voice-bar" role="region" aria-label="Voice commands">
+          <div class="voice-input-container">
+            <button id="mic-btn" class="mic-btn" aria-label="Start voice command" aria-pressed="false">
+              <span class="mic-icon" aria-hidden="true">🎤</span>
+            </button>
+            <div class="voice-text" id="voice-text" aria-live="polite">
+              Say "find red shoes near me"
+            </div>
+          </div>
+          <div class="voice-wave" id="voice-wave" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions" role="toolbar" aria-label="Quick actions">
+          <button class="quick-action-btn" id="scanBtn"        aria-label="Scan center of frame">🔍 Scan</button>
+          <button class="quick-action-btn" id="setTemplateBtn" aria-label="Set detection template">✨ Set Template</button>
+          <button class="quick-action-btn" id="flashlightBtn"  aria-label="Toggle flashlight">💡 Light</button>
+        </div>
+      </section>
+
+      <!-- ── Explore Page ── -->
+      <section id="explore-page" class="page" aria-label="Explore nearby">
+        <div class="page-header">
+          <button class="back-btn" aria-label="Back to camera">←</button>
+          <h2>Explore Nearby</h2>
+        </div>
+        <div class="explore-container">
+          <div class="search-box" role="search">
+            <label for="explore-search" class="sr-only">Search places or products</label>
+            <input type="search" id="explore-search"
+              placeholder="Search places, products…"
+              class="search-input"
+              autocomplete="off"
+              spellcheck="false" />
+            <button class="search-btn" aria-label="Submit search">🔍</button>
+          </div>
+          <div id="map-container" class="map-container" role="img" aria-label="Offline map">
+            <div class="map-placeholder">
+              <div class="map-pin" aria-hidden="true">📍</div>
+              <p>Loading offline map…</p>
+            </div>
+          </div>
+          <div id="poi-list" class="poi-list" role="list" aria-live="polite">
+            <p class="placeholder-text">Nearby places will appear here</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Profile Page ── -->
+      <section id="profile-page" class="page" aria-label="Your profile">
+        <div class="page-header">
+          <button class="back-btn" aria-label="Back to camera">←</button>
+          <h2>Your Profile</h2>
+        </div>
+        <div class="profile-grid">
+          <div class="card">
+            <h3>📁 Saved Templates</h3>
+            <div id="templates-list" class="templates-list" role="list" aria-live="polite">
+              <p class="placeholder-text">No templates saved yet</p>
+            </div>
+          </div>
+          <div class="card">
+            <h3>⚙️ Preferences</h3>
+            <div class="setting-item">
+              <label for="offline-toggle">Offline Mode</label>
+              <label class="toggle" aria-label="Toggle offline mode">
+                <input type="checkbox" id="offline-toggle" />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label for="voice-feedback-toggle">Voice Feedback</label>
+              <label class="toggle" aria-label="Toggle voice feedback">
+                <input type="checkbox" id="voice-feedback-toggle" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="card">
+            <h3>📊 Stats</h3>
+            <div class="stats-grid" role="list">
+              <div class="stat" role="listitem"><strong>0</strong><span>Scans</span></div>
+              <div class="stat" role="listitem"><strong>0</strong><span>Templates</span></div>
+              <div class="stat" role="listitem"><strong>0</strong><span>Saved</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Settings Page ── -->
+      <section id="settings-page" class="page" aria-label="Settings">
+        <div class="page-header">
+          <button class="back-btn" aria-label="Back to camera">←</button>
+          <h2>Settings</h2>
+        </div>
+        <div class="card">
+          <div class="setting-item">
+            <label for="camera-resolution">Camera Resolution</label>
+            <select id="camera-resolution">
+              <option>1080p</option>
+              <option selected>720p</option>
+              <option>480p</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <label for="ar-opacity">AR Overlay Opacity</label>
+            <input type="range" id="ar-opacity" min="0.2" max="1" step="0.1" value="0.8"
+              aria-valuemin="0.2" aria-valuemax="1" aria-valuenow="0.8" />
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ============= BOTTOM NAVIGATION ============= -->
+    <nav class="bottom-nav" id="nav-bar" aria-label="Main navigation">
+      <button class="nav-btn active-nav" data-page="camera" aria-label="Camera" aria-current="page">
+        <span class="nav-icon" aria-hidden="true">📷</span>
+        <span class="nav-label">Camera</span>
+        <span class="nav-ripple" aria-hidden="true"></span>
+      </button>
+      <button class="nav-btn" data-page="explore" aria-label="Explore">
+        <span class="nav-icon" aria-hidden="true">🗺️</span>
+        <span class="nav-label">Explore</span>
+        <span class="nav-ripple" aria-hidden="true"></span>
+      </button>
+      <button class="nav-btn" data-page="profile" aria-label="Profile">
+        <span class="nav-icon" aria-hidden="true">👤</span>
+        <span class="nav-label">Profile</span>
+        <span class="nav-ripple" aria-hidden="true"></span>
+      </button>
+    </nav>
+
+    <!-- ============= FLOATING ACTION BUTTON ============= -->
+    <div class="fab-container">
+      <button class="fab" id="ai-lens-fab" aria-label="Activate AI Lens — scan centre of frame">
+        <span class="fab-inner" aria-hidden="true">⚡</span>
+      </button>
+    </div>
+
+    <!-- ============= TOAST CONTAINER ============= -->
+    <div id="toast-container" class="toast-container" role="alert" aria-live="assertive" aria-atomic="true"></div>
+
+    <!-- ============= MODAL OVERLAY ============= -->
+    <div id="modal-overlay" class="modal-overlay hidden"
+      role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modal-title">Details</h3>
+          <button class="modal-close" id="modal-close" aria-label="Close modal">✕</button>
+        </div>
+        <div id="modal-body" class="modal-body">
+          <!-- Dynamic content injected by JS -->
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /#app -->
+
+  <!-- ============= SCREEN-READER UTILITY CLASS ============= -->
+  <style>.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}</style>
+
+  <!-- Entry point — type="module" fetches with credentials:"omit",
+       matching the modulepreload above, so no cache miss warning -->
+  <script type="module" src="/app.js" crossorigin="anonymous"></script>
+</body>
+</html>
