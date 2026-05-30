@@ -5,8 +5,11 @@ import {
 } from './state.js';
 import {
   video, overlayCanvas, overlayCtx, detectionBox, detectionLabel, detectionDistance,
-  detectionBuyBtn, compassTarget, currentHeading
+  detectionBuyBtn
 } from './dom.js';
+
+import { compassTarget, currentHeading } from './state.js';
+
 import {
   updateStatus, showToast, updateStats, exitTemplateMode, navigateTo
 } from './ui.js';
