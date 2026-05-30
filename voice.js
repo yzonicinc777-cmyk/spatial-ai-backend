@@ -1,6 +1,6 @@
 // voice.js
 import {
-  recognition, isListening, voiceFinalTranscript, showCompass, compassRing
+  recognition, isListening, voiceFinalTranscript, showCompass
 } from './state.js';
 import { voiceBar, micBtn, voiceText, voiceWave, compassRing as domCompassRing } from './dom.js';
 import { updateStatus, showToast, vibrate, navigateTo, enterTemplateMode } from './ui.js';
