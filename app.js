@@ -21,7 +21,7 @@
  *   • Content-Security-Policy meta tag covers all external resources
  */
 
-import init, { greet } from '/pkg/spatial_explorer_core.js';
+import init, { configure, set_template, detect_template } from './pkg/spatial_explorer_core.js';
 
 import { initDOM, refs, refList }              from './js/dom.js';
 import { getState, setState, subscribe }       from './js/state.js';
