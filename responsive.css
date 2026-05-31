@@ -394,6 +394,32 @@
     right: calc(50% - 340px);
   }
 
+  /* +++ ADD THIS: Center camera page overlays on large screens +++ */
+  .quick-actions {
+    left: 50% !important;
+    transform: translateX(-50%);
+    width: auto;
+  }
+
+  #voice-bar {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%);
+    width: 540px;
+  }
+
+  /* Keep compass ring on right but pull inward */
+  #compass-ring {
+    right: max(24px, calc((100% - 1200px) / 2 + 24px));
+  }
+
+  /* Override FAB positioning to stay near centered content */
+  .fab-container {
+    right: max(24px, calc((100% - 1200px) / 2 + 24px));
+    left: auto;
+  }
+  /* +++ END ADD +++ */
+
   /* More pronounced hover states on desktop */
   .card:hover {
     transform: translateY(-3px);
