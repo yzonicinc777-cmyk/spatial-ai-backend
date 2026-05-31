@@ -87,11 +87,24 @@ async function start() {
   updateStatus('Loading AI engine…');
 
   try {
-    await init(); // This is the crucial await
+    await init(); 
     setState({ wasmReady: true });
     
-    // Configure the engine (optional, based on your lib.rs)
-    configure(JSON.stringify({ min_confidence: 0.35 })); 
+    // 1. Load saved user settings (from storage.js)
+    const savedSettings = await loadSettings() || {};
+    
+    // 2. Define defaults to prevent "missing field" errors
+    const defaultConfig = {
+      min_confidence: 0.35,
+      max_results: 5,
+      multi_scale: true,
+      iou_threshold: 0.3,
+      harris_k: 0.04
+    };
+
+    // 3. Merge saved settings with defaults and configure
+    const finalConfig = { ...defaultConfig, ...savedSettings };
+    configure(JSON.stringify(finalConfig));
     
     console.info('[app] Spatial AI Core loaded and configured');
     updateStatus('AI engine ready');
@@ -100,7 +113,7 @@ async function start() {
     updateStatus('AI limited — WASM unavailable', 'warn');
     showToast('Core AI engine failed to load', 'error');
   }
-
+  
   hideSplash();
 
   // ── 6. Sensors ────────────────────────────────────────────────────────────
