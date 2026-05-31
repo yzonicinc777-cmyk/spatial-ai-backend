@@ -1,0 +1,1927 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   SPATIAL AI EXPLORER — CORE.CSS
+   Leader stylesheet: tokens · reset · layout · all component bindings
+   Architecture: Obsidian Glass · Liquid Chromatic · Orbital Precision
+   Target: index.html + camera.js · detection.js · state.js · ui.js · dom.js
+
+   Security:
+     • No external resource loads beyond declared fonts (fonts.googleapis.com)
+     • No dynamic @import at runtime
+     • All custom properties immutable via JS (read only for layout)
+     • Subresource integrity enforced at HTML level
+     • pointer-events locked on non-interactive layers
+     • Overscroll contained per-page to prevent pull-to-refresh hijack
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── §0  FONT IMPORT ────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap');
+
+/* ─── §1  DESIGN TOKENS ──────────────────────────────────────────────────── */
+:root {
+  /* ── Core chromatic palette ── */
+  --void:             #01030a;
+  --obsidian:         #060b16;
+  --deep-space:       #080f1e;
+  --navy:             #0b1525;
+  --panel:            #0f1b2e;
+  --surface:          #121e32;
+  --surface-hi:       #172337;
+
+  /* ── Glass surfaces (backdrop-aware) ── */
+  --glass-0:          rgba(255,255,255,0.018);
+  --glass-1:          rgba(255,255,255,0.045);
+  --glass-2:          rgba(255,255,255,0.075);
+  --glass-3:          rgba(255,255,255,0.11);
+  --glass-4:          rgba(255,255,255,0.16);
+  --glass-border:     rgba(255,255,255,0.07);
+  --glass-border-hi:  rgba(255,255,255,0.15);
+  --glass-border-glow:rgba(0,212,255,0.38);
+
+  /* ── Brand chromatic spectrum ── */
+  --ion:              #00d4ff;   /* electric cyan — primary */
+  --ion-dim:          rgba(0,212,255,0.13);
+  --ion-glow:         rgba(0,212,255,0.42);
+  --ion-deep:         rgba(0,212,255,0.08);
+
+  --photon:           #8b3dff;   /* deep violet */
+  --photon-dim:       rgba(139,61,255,0.14);
+  --photon-glow:      rgba(139,61,255,0.38);
+
+  --nova:             #ff4f5e;   /* coral-red / danger */
+  --nova-dim:         rgba(255,79,94,0.13);
+  --nova-glow:        rgba(255,79,94,0.35);
+
+  --plasma:           #3ee8dc;   /* aqua-mint / success */
+  --plasma-dim:       rgba(62,232,220,0.12);
+
+  --amber:            #ffb845;   /* warm amber / warning */
+  --amber-dim:        rgba(255,184,69,0.13);
+
+  --verdant:          #00e5a0;   /* bio-green / online */
+  --verdant-dim:      rgba(0,229,160,0.12);
+
+  --stellar:          #e8f4ff;   /* near-white text */
+
+  /* ── Gradient system ── */
+  --grad-brand:       linear-gradient(135deg, #00d4ff 0%, #8b3dff 100%);
+  --grad-brand-rev:   linear-gradient(135deg, #8b3dff 0%, #00d4ff 100%);
+  --grad-warm:        linear-gradient(135deg, #ff4f5e 0%, #ffb845 100%);
+  --grad-cool:        linear-gradient(135deg, #3ee8dc 0%, #00d4ff 100%);
+  --grad-deep:        linear-gradient(165deg, #080f1e 0%, #060b16 100%);
+  --grad-surface:     linear-gradient(160deg, rgba(15,27,46,0.9) 0%, rgba(8,15,30,0.95) 100%);
+
+  /* Ambient mesh — composited by body::before */
+  --grad-mesh:
+    radial-gradient(ellipse 75% 55% at 12% 18%, rgba(0,212,255,0.065) 0%, transparent 60%),
+    radial-gradient(ellipse 65% 75% at 88% 82%, rgba(139,61,255,0.065) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 48% at 50% 50%, rgba(62,232,220,0.028) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 35% at 75% 20%, rgba(255,184,69,0.025) 0%, transparent 55%);
+
+  /* ── Typography — Syne display, JetBrains Mono data ── */
+  --font-display:   'Syne', -apple-system, 'SF Pro Display', sans-serif;
+  --font-sans:      'Syne', -apple-system, 'Helvetica Neue', sans-serif;
+  --font-mono:      'JetBrains Mono', 'SF Mono', 'Cascadia Code', monospace;
+
+  /* Fluid typescale (clamp min, fluid, max) */
+  --t-2xs:  clamp(0.58rem,  1.1vw,  0.68rem);
+  --t-xs:   clamp(0.70rem,  1.5vw,  0.78rem);
+  --t-sm:   clamp(0.80rem,  1.75vw, 0.90rem);
+  --t-base: clamp(0.90rem,  2vw,    1.00rem);
+  --t-md:   clamp(1.00rem,  2.2vw,  1.14rem);
+  --t-lg:   clamp(1.14rem,  2.5vw,  1.32rem);
+  --t-xl:   clamp(1.36rem,  3vw,    1.70rem);
+  --t-2xl:  clamp(1.75rem,  4vw,    2.30rem);
+  --t-3xl:  clamp(2.20rem,  5.5vw,  3.00rem);
+  --t-4xl:  clamp(2.80rem,  7vw,    4.00rem);
+
+  /* ── Elevation / shadow system ── */
+  --shadow-xs:     0 2px 6px rgba(0,0,0,0.38);
+  --shadow-sm:     0 4px 14px rgba(0,0,0,0.48);
+  --shadow-md:     0 8px 28px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.35);
+  --shadow-lg:     0 16px 48px rgba(0,0,0,0.65), 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-xl:     0 24px 64px rgba(0,0,0,0.70), 0 8px 24px rgba(0,0,0,0.45);
+  --shadow-2xl:    0 40px 80px rgba(0,0,0,0.75), 0 16px 40px rgba(0,0,0,0.5);
+  --shadow-panel:  0 24px 64px rgba(0,0,0,0.68), 0 4px 16px rgba(0,0,0,0.48);
+  --shadow-float:  0 32px 80px rgba(0,0,0,0.62), 0 8px 24px rgba(0,0,0,0.42);
+
+  /* Glow shadows */
+  --glow-ion:     0 0 18px rgba(0,212,255,0.28), 0 0 48px rgba(0,212,255,0.11);
+  --glow-photon:  0 0 18px rgba(139,61,255,0.28), 0 0 48px rgba(139,61,255,0.11);
+  --glow-nova:    0 0 18px rgba(255,79,94,0.30);
+  --glow-plasma:  0 0 14px rgba(62,232,220,0.32);
+
+  /* Glass inset */
+  --glass-inset:  inset 0 1px 0 rgba(255,255,255,0.10),
+                  inset 0 -1px 0 rgba(0,0,0,0.18);
+
+  /* ── Border radius ── */
+  --r-2xs:  3px;
+  --r-xs:   7px;
+  --r-sm:   11px;
+  --r-md:   16px;
+  --r-lg:   22px;
+  --r-xl:   30px;
+  --r-2xl:  42px;
+  --r-pill: 9999px;
+
+  /* ── Spacing scale ── */
+  --sp-1:  4px;   --sp-2:  8px;   --sp-3:  12px;  --sp-4:  16px;
+  --sp-5:  20px;  --sp-6:  24px;  --sp-8:  32px;  --sp-10: 40px;
+  --sp-12: 48px;  --sp-16: 64px;  --sp-20: 80px;
+
+  /* ── Motion easing system ── */
+  --ease-expo:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-bounce:  cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-back:    cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  --ease-snappy:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-silk:    cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-spring:  cubic-bezier(0.43, 0.195, 0.02, 1.26);
+
+  /* Duration tokens */
+  --dur-instant:  70ms;
+  --dur-fast:     140ms;
+  --dur-mid:      260ms;
+  --dur-slow:     440ms;
+  --dur-drift:    720ms;
+  --dur-epic:     1100ms;
+
+  /* ── Layout constants ── */
+  --status-h:     58px;
+  --nav-h:        74px;
+  --nav-bottom:   14px;
+  --fab-size:     60px;
+
+  /* Safe areas (notch / home indicator / curved display) */
+  --safe-top:     env(safe-area-inset-top, 0px);
+  --safe-bottom:  env(safe-area-inset-bottom, 0px);
+  --safe-left:    env(safe-area-inset-left, 0px);
+  --safe-right:   env(safe-area-inset-right, 0px);
+
+  /* ── Z-index stack (explicit layer management) ── */
+  --z-bg:         0;
+  --z-camera:     1;
+  --z-overlay:    2;
+  --z-reticle:    3;
+  --z-detection:  4;
+  --z-compass:    5;
+  --z-camera-ui:  10;
+  --z-status:     50;
+  --z-nav:        40;
+  --z-fab:        45;
+  --z-toast:      9000;
+  --z-modal:      8000;
+  --z-splash:     9999;
+}
+
+/* ─── §2  RESET & BASE ───────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+
+  /* Prevent iOS callout on long-press */
+  -webkit-touch-callout: none;
+
+  /* Disable tap highlight flash on mobile */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+
+  /* Crisp sub-pixel font rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeSpeed;
+}
+
+html {
+  font-size: 16px;
+
+  /* Prevent text inflation on orientation change */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+
+  /* Full-bleed on WebKit */
+  height: -webkit-fill-available;
+  scroll-behavior: smooth;
+
+  /* Prevent pull-to-refresh at document level */
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--t-base);
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  letter-spacing: -0.018em;
+  line-height: 1.5;
+
+  background: var(--void);
+  color: rgba(232, 244, 255, 0.94);
+
+  /* Lock layout — this is a native-app-style PWA */
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;       /* dvh for accurate mobile chrome accounting */
+
+  /* Prevent content selection on gesture interfaces */
+  -webkit-user-select: none;
+  user-select: none;
+
+  /* Contain all paint, layout, and size calculations */
+  contain: strict;
+}
+
+/* Form elements inherit typography */
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-sans);
+  font-size: var(--t-base);
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  line-height: 1;
+  text-decoration: none;
+  /* Prevent double-tap zoom on iOS */
+  touch-action: manipulation;
+}
+
+/* Allow text selection in input fields only */
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ── Hide scrollbars globally (preserved scroll function) ── */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Focus ring — keyboard navigation only ── */
+:focus-visible {
+  outline: 2px solid var(--ion);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+/* ── Skip-to-content utility ── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Hidden utility (state-driven, matches dom.js .hidden) ── */
+.hidden {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* ── Text utilities ── */
+.text-muted  { color: rgba(200, 220, 255, 0.34); font-size: var(--t-xs); }
+.text-ion    { color: var(--ion); }
+.text-plasma { color: var(--plasma); }
+.text-nova   { color: var(--nova); }
+.text-mono   { font-family: var(--font-mono); }
+
+/* ─── §3  GLOBAL BACKGROUND LAYER ───────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-bg);
+  background: var(--grad-mesh), var(--obsidian);
+  pointer-events: none;
+  will-change: opacity;
+}
+
+/* Particle canvas rendered by ui.js → initBackground() */
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: var(--z-bg);
+  opacity: 0.48;
+  pointer-events: none;
+  /* GPU-accelerated compositing */
+  will-change: transform;
+  transform: translateZ(0);
+  isolation: isolate;
+}
+
+/* ─── §4  SPLASH SCREEN ──────────────────────────────────────────────────── */
+/* ID: #splash-screen — managed by ui.js hideSplash() / scheduleSplashHide() */
+#splash-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--void);
+  z-index: var(--z-splash);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    opacity var(--dur-slow) var(--ease-expo),
+    visibility var(--dur-slow);
+  /* Prevent interaction after hidden class added */
+  will-change: opacity;
+}
+
+/* Ambient radial aurora */
+#splash-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 52% 42% at 28% 38%, rgba(0,212,255,0.095) 0%, transparent 70%),
+    radial-gradient(ellipse 48% 52% at 72% 62%, rgba(139,61,255,0.09) 0%, transparent 70%);
+  animation: splashBreath 6s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+/* Animated micro-grid */
+#splash-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.028) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 65% 65% at center, black 0%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 65% 65% at center, black 0%, transparent 100%);
+  animation: gridDrift 28s linear infinite;
+  pointer-events: none;
+}
+
+#splash-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Splash content structure */
+.splash-content {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-8);
+}
+
+.splash-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-6);
+}
+
+/* Animated SVG logo container */
+.logo-icon {
+  width: 100px;
+  height: 100px;
+  position: relative;
+}
+
+/* Outer orbital ellipse ring */
+.logo-icon::before {
+  content: '';
+  position: absolute;
+  inset: -24px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 212, 255, 0.18);
+  transform-origin: center;
+  animation: orbitalSpin 9s linear infinite;
+}
+
+/* Inner pulse corona */
+.logo-icon::after {
+  content: '';
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,212,255,0.16) 0%, transparent 70%);
+  animation: coronaPulse 2.8s ease-out 1.4s infinite;
+}
+
+.logo-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 18px rgba(0,212,255,0.52));
+  animation: logoFloat 5s ease-in-out infinite alternate;
+}
+
+/* Title — gradient text, staggered entrance */
+.splash-title {
+  font-size: var(--t-3xl);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.92;
+  background: linear-gradient(135deg, #d8f4ff 0%, #00d4ff 38%, #8b3dff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: fadeSlideUp 0.75s var(--ease-expo) 0.35s both;
+}
+
+.splash-title .accent {
+  display: inline-block;
+  background: var(--grad-warm);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: fadeSlideUp 0.75s var(--ease-expo) 0.5s both;
+}
+
+.splash-sub {
+  font-size: var(--t-xs);
+  color: rgba(200, 220, 255, 0.50);
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  animation: fadeSlideUp 0.75s var(--ease-expo) 0.7s both;
+}
+
+/* Loading progress bar */
+.splash-progress {
+  width: 110px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+  animation: fadeSlideUp 0.6s var(--ease-expo) 0.95s both;
+}
+
+.splash-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--grad-brand);
+  border-radius: var(--r-pill);
+  box-shadow: 0 0 10px var(--ion);
+  animation: progressLoad 3.0s var(--ease-expo) 1.0s both;
+}
+
+/* ─── §5  APP SHELL ──────────────────────────────────────────────────────── */
+/* ID: #app — rendered by ui.js hideSplash() which sets opacity: 1 */
+#app {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+  pointer-events: auto;
+  transition: opacity var(--dur-slow) var(--ease-expo);
+  /* Force GPU layer for smooth opacity transition from 0 → 1 */
+  will-change: opacity;
+  transform: translateZ(0);
+}
+
+/* ─── §6  STATUS BAR ─────────────────────────────────────────────────────── */
+/* Element: header.status-bar — updated by ui.js updateStatus/updateGPSBadge etc. */
+.status-bar {
+  position: fixed;
+  top: calc(10px + var(--safe-top));
+  left: calc(14px + var(--safe-left));
+  right: calc(14px + var(--safe-right));
+  height: var(--status-h);
+  z-index: var(--z-status);
+
+  /* Liquid glass pill */
+  background: rgba(6, 11, 22, 0.78);
+  backdrop-filter: blur(36px) saturate(1.9) brightness(1.08);
+  -webkit-backdrop-filter: blur(36px) saturate(1.9) brightness(1.08);
+  border-radius: var(--r-pill);
+  border: 0.5px solid rgba(255, 255, 255, 0.094);
+
+  padding: 0 var(--sp-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+
+  box-shadow:
+    0 2px 6px rgba(0,0,0,0.52),
+    0 8px 28px rgba(0,0,0,0.32),
+    var(--glass-inset);
+
+  animation: dropIn 0.75s var(--ease-expo) 0.2s both;
+
+  /* Prevent content overflow / layout shift */
+  overflow: hidden;
+  will-change: transform;
+}
+
+/* Top shimmer edge */
+.status-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 15%;
+  right: 15%;
+  height: 0.5px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+  pointer-events: none;
+}
+
+/* Status sections */
+.status-left,
+.status-center,
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.status-left   { flex: 1; }
+.status-center { flex: 0 0 auto; }
+.status-right  { flex: 1; justify-content: flex-end; flex-wrap: nowrap; }
+
+/* Clock — ID: #clock, set by ui.js initClock() */
+.status-time {
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  color: rgba(200, 220, 255, 0.88);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  /* Tabular nums prevent width jitter */
+  font-variant-numeric: tabular-nums;
+}
+
+/* Status indicator pill — ID: #status-indicator */
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.046);
+  border: 0.5px solid rgba(255, 255, 255, 0.076);
+  border-radius: var(--r-pill);
+  padding: 4px 10px 4px 7px;
+  flex-shrink: 0;
+}
+
+/* Dot — .status-dot (class selector in dom.js) — colour set by ui.js updateStatus() */
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--plasma);
+  box-shadow: 0 0 7px var(--plasma);
+  flex-shrink: 0;
+  animation: statusPulse 2.8s ease-in-out infinite;
+}
+
+/* Status text — ID: #status-text, set by ui.js updateStatus() */
+#status-text {
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: rgba(200, 220, 255, 0.68);
+  letter-spacing: 0.05em;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Status badges — IDs: #gps-badge, #compass-badge, #battery-badge, #network-badge */
+/* Updated by ui.js updateGPSBadge, updateCompassBadge, updateBatteryBadge, updateNetworkBadge */
+.status-badge {
+  font-size: var(--t-2xs);
+  font-family: var(--font-mono);
+  color: rgba(200, 220, 255, 0.52);
+  letter-spacing: 0.025em;
+  padding: 3px 7px;
+  background: rgba(255, 255, 255, 0.038);
+  border-radius: var(--r-xs);
+  border: 0.5px solid rgba(255, 255, 255, 0.056);
+  transition:
+    color var(--dur-fast) var(--ease-snappy),
+    background var(--dur-fast) var(--ease-snappy);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Network badge — class .online added/removed by ui.js updateNetworkBadge() */
+.status-badge.online {
+  color: var(--verdant);
+}
+
+/* ─── §7  MAIN CONTENT + PAGE SYSTEM ────────────────────────────────────── */
+.main-content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  contain: strict;
+}
+
+/* Each .page matches a <section id="x-page"> in index.html */
+/* Visibility + transform driven by ui.js navigateTo() */
+.page {
+  position: absolute;
+  inset: 0;
+
+  /* Scroll containment per page */
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  overscroll-behavior-x: none;
+
+  /* Entry / exit animation base state (hidden) */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(28px) scale(0.975);
+  transition:
+    opacity var(--dur-mid) var(--ease-expo),
+    transform var(--dur-mid) var(--ease-expo),
+    visibility var(--dur-mid);
+  will-change: transform, opacity;
+
+  /* Pad for fixed status bar + bottom nav */
+  padding-top: calc(var(--status-h) + var(--safe-top) + var(--sp-4));
+  padding-bottom: calc(var(--nav-h) + var(--nav-bottom) + var(--safe-bottom) + var(--sp-8));
+  padding-left:  calc(var(--safe-left)  + var(--sp-4));
+  padding-right: calc(var(--safe-right) + var(--sp-4));
+
+  /* Contain paint so off-screen pages don't composite */
+  contain: layout style;
+}
+
+/* Active page — class added by ui.js navigateTo() */
+.page.active {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  contain: none; /* Allow scrolling children to paint */
+}
+
+/* Exit animation — class added by ui.js navigateTo() transitioning away */
+.page.page-exit {
+  opacity: 0;
+  transform: translateX(-20px) scale(0.975);
+  visibility: visible;  /* keep visible during exit animation */
+  pointer-events: none;
+}
+
+/* Page section header (Explore / Profile / Settings pages) */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-6);
+  padding-top: var(--sp-2);
+}
+
+.page-header h2 {
+  font-size: var(--t-xl);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, rgba(232,244,255,1) 0%, rgba(140,190,255,0.78) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+}
+
+/* Back buttons — class .back-btn, handled in app.js via refList('backBtns') */
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--glass-1);
+  border: 0.5px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition:
+    background var(--dur-fast) var(--ease-snappy),
+    transform var(--dur-fast) var(--ease-bounce),
+    border-color var(--dur-fast);
+  touch-action: manipulation;
+}
+
+.back-btn:hover  { background: var(--glass-2); border-color: rgba(255,255,255,0.12); }
+.back-btn:active { transform: scale(0.86); }
+
+/* ─── §8  CAMERA PAGE ────────────────────────────────────────────────────── */
+/* ID: #camera-page — no padding override, fullscreen */
+#camera-page {
+  padding: 0 !important;
+  overflow: hidden !important;
+  contain: strict;
+}
+
+/* Full-bleed camera container */
+.camera-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  overflow: hidden;
+}
+
+/* Video element — ID: #video, srcObject set by camera.js initCamera() */
+#video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  /* Prevent flash of unstyled state */
+  background: #000;
+  /* Prevent interaction with the video itself */
+  pointer-events: none;
+}
+
+/* Overlay canvas — ID: #overlay-canvas, drawn by camera.js drawMatches() */
+#overlay-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: var(--z-overlay);
+  /* GPU composite layer for frequent redraws */
+  will-change: contents;
+  transform: translateZ(0);
+}
+
+/* ─── §9  SCAN RETICLE ───────────────────────────────────────────────────── */
+/* .scan-reticle — 4-corner bracket overlay, state class body.template-mode */
+.scan-reticle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(190px, 40vw);
+  height: min(190px, 40vw);
+  pointer-events: none;
+  z-index: var(--z-reticle);
+}
+
+/* Top-left corner :: pseudo */
+.scan-reticle::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 26px; height: 26px;
+  border-top: 2px solid rgba(0,212,255,0.82);
+  border-left: 2px solid rgba(0,212,255,0.82);
+  border-radius: 4px 0 0 0;
+  transition: border-color var(--dur-mid), box-shadow var(--dur-mid);
+}
+
+/* Bottom-right corner :: pseudo */
+.scan-reticle::after {
+  content: '';
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 26px; height: 26px;
+  border-bottom: 2px solid rgba(0,212,255,0.82);
+  border-right: 2px solid rgba(0,212,255,0.82);
+  border-radius: 0 0 4px 0;
+  transition: border-color var(--dur-mid), box-shadow var(--dur-mid);
+}
+
+/* Additional corners — HTML div children inside .scan-reticle */
+.scan-corner-tr {
+  position: absolute;
+  top: 0; right: 0;
+  width: 26px; height: 26px;
+  border-top: 2px solid rgba(0,212,255,0.82);
+  border-right: 2px solid rgba(0,212,255,0.82);
+  border-radius: 0 4px 0 0;
+  transition: border-color var(--dur-mid), box-shadow var(--dur-mid);
+}
+
+.scan-corner-bl {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 26px; height: 26px;
+  border-bottom: 2px solid rgba(0,212,255,0.82);
+  border-left: 2px solid rgba(0,212,255,0.82);
+  border-radius: 0 0 0 4px;
+  transition: border-color var(--dur-mid), box-shadow var(--dur-mid);
+}
+
+/* Scan sweep line — child .scan-line inside .scan-reticle */
+.scan-line {
+  position: absolute;
+  top: 0;
+  left: 3px;
+  right: 3px;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, var(--ion), rgba(0,212,255,0.6), transparent);
+  box-shadow: 0 0 8px var(--ion), 0 0 16px rgba(0,212,255,0.3);
+  border-radius: var(--r-pill);
+  animation: scanSweep 2.8s ease-in-out infinite;
+}
+
+/* Template mode — class added by detection.js enterTemplateMode() */
+body.template-mode .scan-reticle::before,
+body.template-mode .scan-reticle::after,
+body.template-mode .scan-corner-tr,
+body.template-mode .scan-corner-bl {
+  border-color: var(--ion);
+  box-shadow: 0 0 10px rgba(0,212,255,0.6);
+  animation: reticleFlare 1.1s ease-in-out infinite alternate;
+}
+
+/* ─── §10  AR DETECTION BOX ──────────────────────────────────────────────── */
+/* ID: #detection-box — positioned by camera.js positionDetectionBox() */
+/* Visibility toggled by camera.js hideDetectionBox() */
+#detection-box {
+  position: absolute;
+  border: 1.5px solid rgba(62,232,220,0.78);
+  border-radius: var(--r-xs);
+  z-index: var(--z-detection);
+  box-shadow:
+    0 0 0 1px rgba(62,232,220,0.18),
+    inset 0 0 18px rgba(62,232,220,0.038),
+    0 0 22px rgba(62,232,220,0.22);
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
+  pointer-events: auto;
+  animation: boxAppear 0.32s var(--ease-bounce) both;
+  transition:
+    left var(--dur-fast) var(--ease-snappy),
+    top var(--dur-fast) var(--ease-snappy),
+    width var(--dur-fast) var(--ease-snappy),
+    height var(--dur-fast) var(--ease-snappy);
+  will-change: left, top, width, height;
+}
+
+/* Detection confidence label — ID: #detection-label, set by camera.js */
+#detection-label {
+  position: absolute;
+  top: -27px;
+  left: -1px;
+  background: rgba(62,232,220,0.13);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 0.5px solid rgba(62,232,220,0.28);
+  border-radius: var(--r-xs) var(--r-xs) 0 0;
+  padding: 3px 9px;
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--plasma);
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Distance / scale badge — ID: #detection-distance, set by camera.js */
+#detection-distance {
+  position: absolute;
+  bottom: -26px;
+  right: -1px;
+  background: rgba(0,0,0,0.52);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 0.5px solid rgba(255,255,255,0.09);
+  border-radius: 0 0 var(--r-xs) var(--r-xs);
+  padding: 3px 9px;
+  font-size: var(--t-2xs);
+  font-family: var(--font-mono);
+  color: rgba(200,220,255,0.68);
+  white-space: nowrap;
+}
+
+/* Details CTA — ID: #detection-buy-btn */
+#detection-buy-btn {
+  position: absolute;
+  top: 50%;
+  right: -56px;
+  transform: translateY(-50%);
+  background: var(--grad-brand);
+  color: white;
+  border-radius: var(--r-pill);
+  padding: 6px 11px;
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  box-shadow: var(--glow-ion);
+  transition: transform var(--dur-fast) var(--ease-bounce);
+  touch-action: manipulation;
+}
+
+#detection-buy-btn:hover  { transform: translateY(-50%) scale(1.07); }
+#detection-buy-btn:active { transform: translateY(-50%) scale(0.92); }
+
+/* ─── §11  COMPASS RING ──────────────────────────────────────────────────── */
+/* ID: #compass-ring — rotated by camera.js bindCompassRing() */
+/* Visibility via state subscription in camera.js */
+#compass-ring {
+  position: absolute;
+  bottom: calc(var(--nav-h) + var(--nav-bottom) + var(--sp-12) + var(--safe-bottom));
+  right: calc(var(--safe-right) + var(--sp-4));
+  width: 88px;
+  height: 88px;
+  z-index: var(--z-compass);
+  transition:
+    opacity var(--dur-mid) var(--ease-snappy),
+    transform var(--dur-mid) var(--ease-silk),
+    visibility var(--dur-mid);
+  will-change: transform;
+}
+
+.compass-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 14px rgba(0,212,255,0.28));
+}
+
+/* ─── §12  VOICE COMMAND BAR ─────────────────────────────────────────────── */
+/* ID: #voice-bar — class .listening added by voice.js _setVoiceUI() */
+#voice-bar {
+  position: absolute;
+  bottom: calc(var(--nav-h) + var(--nav-bottom) + var(--sp-5) + var(--safe-bottom));
+  left: calc(var(--safe-left) + var(--sp-4));
+  right: calc(var(--safe-right) + var(--sp-4));
+  background: rgba(6,11,22,0.74);
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  border-radius: var(--r-pill);
+  border: 0.5px solid rgba(255,255,255,0.076);
+  padding: var(--sp-3) var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  z-index: var(--z-camera-ui);
+  box-shadow: var(--shadow-panel);
+  transition:
+    border-color var(--dur-mid) var(--ease-snappy),
+    box-shadow var(--dur-mid) var(--ease-snappy);
+  animation: slideUp 0.65s var(--ease-expo) 0.55s both;
+}
+
+/* Listening state — class added/removed by voice.js */
+#voice-bar.listening {
+  border-color: rgba(0,212,255,0.38);
+  box-shadow: var(--shadow-panel), 0 0 0 1px rgba(0,212,255,0.18), 0 0 28px rgba(0,212,255,0.10);
+}
+
+/* Voice input row */
+.voice-input-container {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+/* Mic button — ID: #mic-btn, aria-pressed toggled by voice.js */
+#mic-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--glass-1);
+  border: 0.5px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition:
+    background var(--dur-fast) var(--ease-snappy),
+    border-color var(--dur-fast),
+    transform var(--dur-fast) var(--ease-bounce),
+    box-shadow var(--dur-fast);
+  will-change: transform;
+  touch-action: manipulation;
+}
+
+/* Mic active (listening) state */
+#mic-btn.listening {
+  background: rgba(0,212,255,0.13);
+  border-color: rgba(0,212,255,0.45);
+  box-shadow: 0 0 0 1px rgba(0,212,255,0.28), 0 0 16px rgba(0,212,255,0.18);
+  animation: micRing 1.6s ease-in-out infinite;
+}
+
+#mic-btn:active { transform: scale(0.86); }
+
+/* Voice transcript text — ID: #voice-text, set by voice.js */
+#voice-text {
+  flex: 1;
+  font-size: var(--t-sm);
+  color: rgba(200,220,255,0.55);
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--dur-mid);
+  font-style: italic;
+  min-width: 0;
+}
+
+#voice-bar.listening #voice-text {
+  color: rgba(230,244,255,0.9);
+  font-style: normal;
+}
+
+/* Voice wave bars — ID: #voice-wave, class .listening toggled by voice.js */
+#voice-wave {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 16px;
+}
+
+#voice-wave.listening { display: flex; }
+
+#voice-wave span {
+  display: block;
+  width: 3px;
+  border-radius: var(--r-pill);
+  background: var(--ion);
+  animation: voiceBarAnim 1.3s ease-in-out infinite;
+}
+
+#voice-wave span:nth-child(1) { height: 5px;  animation-delay: 0s; }
+#voice-wave span:nth-child(2) { height: 11px; animation-delay: 0.11s; }
+#voice-wave span:nth-child(3) { height: 17px; animation-delay: 0.22s; }
+#voice-wave span:nth-child(4) { height: 11px; animation-delay: 0.33s; }
+#voice-wave span:nth-child(5) { height: 5px;  animation-delay: 0.44s; }
+
+/* ─── §13  QUICK ACTIONS ─────────────────────────────────────────────────── */
+/* IDs: #scanBtn, #setTemplateBtn, #flashlightBtn */
+/* class .mode-active set by detection.js enterTemplateMode() */
+.quick-actions {
+  position: absolute;
+  top: calc(var(--status-h) + var(--safe-top) + var(--sp-4));
+  left: calc(var(--safe-left) + var(--sp-4));
+  display: flex;
+  gap: var(--sp-2);
+  z-index: var(--z-camera-ui);
+  animation: fadeSlideDown 0.55s var(--ease-expo) 0.7s both;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.quick-action-btn {
+  background: rgba(6,11,22,0.74);
+  backdrop-filter: blur(22px) saturate(1.5);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  border: 0.5px solid rgba(255,255,255,0.094);
+  border-radius: var(--r-pill);
+  padding: 8px 14px;
+  font-size: var(--t-xs);
+  font-weight: 600;
+  color: rgba(200,220,255,0.84);
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition:
+    background var(--dur-fast) var(--ease-snappy),
+    border-color var(--dur-fast),
+    color var(--dur-fast),
+    transform var(--dur-fast) var(--ease-bounce);
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm), var(--glass-inset);
+  touch-action: manipulation;
+}
+
+.quick-action-btn:hover {
+  background: rgba(0,212,255,0.10);
+  border-color: rgba(0,212,255,0.32);
+  color: var(--ion);
+}
+
+.quick-action-btn:active { transform: scale(0.90); }
+
+/* Mode active — set by detection.js enterTemplateMode() */
+.quick-action-btn.mode-active {
+  background: rgba(0,212,255,0.13);
+  border-color: rgba(0,212,255,0.46);
+  color: var(--ion);
+  box-shadow: 0 0 0 1px rgba(0,212,255,0.18), var(--shadow-sm);
+}
+
+/* ─── §14  BOTTOM NAVIGATION ─────────────────────────────────────────────── */
+/* ID: #nav-bar — class .active-nav on child .nav-btn set by ui.js navigateTo() */
+#nav-bar {
+  position: fixed;
+  bottom: calc(var(--nav-bottom) + var(--safe-bottom));
+  left: calc(var(--safe-left) + var(--sp-4));
+  right: calc(var(--safe-right) + var(--sp-4));
+  height: var(--nav-h);
+  z-index: var(--z-nav);
+
+  background: rgba(6,11,22,0.84);
+  backdrop-filter: blur(36px) saturate(1.9);
+  -webkit-backdrop-filter: blur(36px) saturate(1.9);
+  border-radius: var(--r-pill);
+  border: 0.5px solid rgba(255,255,255,0.088);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 var(--sp-4);
+
+  box-shadow:
+    0 4px 20px rgba(0,0,0,0.52),
+    0 16px 44px rgba(0,0,0,0.36),
+    var(--glass-inset);
+
+  animation: slideUp 0.72s var(--ease-expo) 0.3s both;
+  overflow: hidden;
+}
+
+/* Top highlight line on nav bar */
+#nav-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 18%;
+  right: 18%;
+  height: 0.5px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent);
+  pointer-events: none;
+}
+
+/* Nav buttons — data-page attribute read by app.js for routing */
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 100%;
+  border-radius: var(--r-lg);
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--dur-fast) var(--ease-bounce);
+  touch-action: manipulation;
+}
+
+.nav-btn:active { transform: scale(0.85); }
+
+.nav-icon {
+  font-size: 1.3rem;
+  display: block;
+  transition:
+    transform var(--dur-mid) var(--ease-bounce),
+    filter var(--dur-mid) var(--ease-snappy);
+}
+
+.nav-label {
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  color: rgba(200,220,255,0.36);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: color var(--dur-mid) var(--ease-snappy);
+}
+
+/* Active nav state — class added by ui.js navigateTo() */
+.nav-btn.active-nav .nav-icon {
+  transform: translateY(-3px) scale(1.1);
+  filter: drop-shadow(0 0 7px var(--ion));
+}
+
+.nav-btn.active-nav .nav-label {
+  color: var(--ion);
+}
+
+/* Active indicator dot */
+.nav-btn.active-nav::after {
+  content: '';
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 3px;
+  border-radius: var(--r-pill);
+  background: var(--ion);
+  box-shadow: 0 0 8px var(--ion);
+  animation: dotGrow 0.32s var(--ease-bounce) both;
+}
+
+/* Ripple element — .nav-ripple, animated by ui.js addRippleEffect() */
+.nav-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(0, 212, 255, 0.11);
+  transform: scale(0);
+  pointer-events: none;
+}
+
+@keyframes rippleEffect {
+  from { transform: scale(0); opacity: 1; }
+  to   { transform: scale(3); opacity: 0; }
+}
+
+/* ─── §15  FAB — AI LENS ─────────────────────────────────────────────────── */
+/* ID: #ai-lens-fab — triggering scan in app.js */
+.fab-container {
+  position: fixed;
+  bottom: calc(var(--nav-h) + var(--nav-bottom) + var(--sp-5) + var(--safe-bottom));
+  right: calc(var(--safe-right) + var(--sp-5));
+  z-index: var(--z-fab);
+  animation: fadeSlideUp 0.65s var(--ease-expo) 0.82s both;
+}
+
+.fab {
+  width: var(--fab-size);
+  height: var(--fab-size);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00d4ff 0%, #6a18e0 100%);
+  border: 1px solid rgba(255,255,255,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 0 0 1px rgba(0,212,255,0.22),
+    0 4px 22px rgba(0,212,255,0.28),
+    0 10px 30px rgba(0,0,0,0.42);
+  transition:
+    transform var(--dur-fast) var(--ease-bounce),
+    box-shadow var(--dur-fast) var(--ease-snappy);
+  will-change: transform;
+  position: relative;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+/* Specular gloss overlay */
+.fab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.28) 0%, transparent 55%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Orbital pulse ring */
+.fab::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,212,255,0.32);
+  animation: fabPulse 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.fab:hover {
+  transform: scale(1.08) translateY(-2px);
+  box-shadow:
+    0 0 0 1px rgba(0,212,255,0.36),
+    0 8px 30px rgba(0,212,255,0.42),
+    0 18px 46px rgba(0,0,0,0.42);
+}
+
+.fab:active {
+  transform: scale(0.91);
+  box-shadow: 0 0 0 1px rgba(0,212,255,0.18), 0 2px 10px rgba(0,212,255,0.18);
+}
+
+.fab-inner {
+  font-size: 1.48rem;
+  position: relative;
+  z-index: 1;
+  transition: transform var(--dur-fast) var(--ease-bounce);
+  line-height: 1;
+}
+
+.fab:active .fab-inner { transform: scale(0.78) rotate(18deg); }
+
+/* ─── §16  CARDS / PANELS ────────────────────────────────────────────────── */
+/* Used in Profile / Settings / Explore pages */
+.card {
+  background: rgba(9,15,28,0.68);
+  backdrop-filter: blur(26px) saturate(1.5);
+  -webkit-backdrop-filter: blur(26px) saturate(1.5);
+  border: 0.5px solid rgba(255,255,255,0.068);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+  margin-bottom: var(--sp-4);
+  box-shadow:
+    0 8px 28px rgba(0,0,0,0.36),
+    var(--glass-inset);
+  position: relative;
+  overflow: hidden;
+  transition:
+    border-color var(--dur-mid) var(--ease-snappy),
+    box-shadow var(--dur-mid),
+    transform var(--dur-mid) var(--ease-expo);
+}
+
+/* Card shimmer top border */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 0.5px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.11), transparent);
+  pointer-events: none;
+}
+
+.card:hover {
+  border-color: rgba(255,255,255,0.11);
+  box-shadow: 0 12px 38px rgba(0,0,0,0.44), var(--glass-inset);
+}
+
+.card h3 {
+  font-size: var(--t-base);
+  font-weight: 700;
+  color: rgba(232,244,255,0.9);
+  letter-spacing: -0.025em;
+  margin-bottom: var(--sp-4);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  line-height: 1.3;
+}
+
+/* ─── §17  EXPLORE PAGE ──────────────────────────────────────────────────── */
+.explore-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+/* Search box — ID: #explore-search input inside */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  background: rgba(9,15,28,0.72);
+  border: 0.5px solid rgba(255,255,255,0.088);
+  border-radius: var(--r-pill);
+  padding: var(--sp-2) var(--sp-3) var(--sp-2) var(--sp-4);
+  box-shadow: var(--shadow-sm), var(--glass-inset);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  transition:
+    border-color var(--dur-mid) var(--ease-snappy),
+    box-shadow var(--dur-mid);
+}
+
+.search-box:focus-within {
+  border-color: rgba(0,212,255,0.42);
+  box-shadow: var(--shadow-sm), 0 0 0 1px rgba(0,212,255,0.14), var(--glass-inset);
+}
+
+/* Search input — ID: #explore-search */
+#explore-search {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: var(--t-sm);
+  color: rgba(232,244,255,0.94);
+  font-weight: 400;
+  min-width: 0;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+#explore-search::placeholder { color: rgba(200,220,255,0.32); }
+
+.search-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ion-dim);
+  border: 0.5px solid rgba(0,212,255,0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.88rem;
+  flex-shrink: 0;
+  transition:
+    background var(--dur-fast) var(--ease-snappy),
+    transform var(--dur-fast) var(--ease-bounce);
+  touch-action: manipulation;
+}
+
+.search-btn:hover  { background: rgba(0,212,255,0.18); }
+.search-btn:active { transform: scale(0.87); }
+
+/* Map container — ID: #map-container */
+#map-container {
+  height: 220px;
+  background: rgba(6,11,22,0.82);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  position: relative;
+  border: 0.5px solid rgba(255,255,255,0.068);
+  box-shadow: var(--shadow-md);
+}
+
+/* Map grid placeholder */
+.map-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  background-image:
+    linear-gradient(rgba(0,212,255,0.036) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.036) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.map-placeholder p {
+  font-size: var(--t-xs);
+  color: rgba(200,220,255,0.38);
+  font-style: italic;
+}
+
+/* Animated location pin */
+.map-pin {
+  font-size: 2.1rem;
+  animation: pinFloat 2.2s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 12px rgba(255,79,94,0.5));
+}
+
+/* POI list — ID: #poi-list */
+#poi-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.placeholder-text {
+  font-size: var(--t-sm);
+  color: rgba(200,220,255,0.28);
+  text-align: center;
+  padding: var(--sp-6);
+  font-style: italic;
+}
+
+/* ─── §18  PROFILE PAGE ──────────────────────────────────────────────────── */
+.profile-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+/* Templates list — ID: #templates-list, populated by ui.js renderTemplatesList() */
+#templates-list .template-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--glass-0);
+  border: 0.5px solid rgba(255,255,255,0.054);
+  border-radius: var(--r-md);
+  margin-bottom: var(--sp-2);
+  transition:
+    background var(--dur-fast) var(--ease-snappy),
+    border-color var(--dur-fast),
+    transform var(--dur-fast) var(--ease-bounce);
+}
+
+#templates-list .template-item:hover {
+  background: var(--glass-1);
+  border-color: rgba(0,212,255,0.18);
+  transform: translateX(4px);
+}
+
+.template-icon { font-size: 1rem; flex-shrink: 0; }
+
+.template-name {
+  flex: 1;
+  font-size: var(--t-xs);
+  font-weight: 500;
+  font-family: var(--font-mono);
+  color: rgba(200,220,255,0.78);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.template-date {
+  font-size: var(--t-2xs);
+  color: rgba(200,220,255,0.34);
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+/* Stats — .stat strong updated by ui.js renderStats() / state subscription */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-3);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: var(--sp-3) var(--sp-2);
+  background: var(--glass-0);
+  border-radius: var(--r-md);
+  border: 0.5px solid rgba(255,255,255,0.048);
+  transition:
+    background var(--dur-fast) var(--ease-snappy),
+    transform var(--dur-fast) var(--ease-bounce);
+}
+
+.stat:hover { background: var(--glass-1); transform: translateY(-2px); }
+
+.stat strong {
+  font-size: var(--t-xl);
+  font-weight: 800;
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat span {
+  font-size: var(--t-2xs);
+  color: rgba(200,220,255,0.38);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ─── §19  SETTINGS PAGE ─────────────────────────────────────────────────── */
+/* IDs: #camera-resolution, #ar-opacity, #offline-toggle, #voice-feedback-toggle */
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-4) 0;
+  border-bottom: 0.5px solid rgba(255,255,255,0.046);
+  gap: var(--sp-4);
+  transition: opacity var(--dur-fast);
+}
+
+.setting-item:last-child { border-bottom: none; }
+
+.setting-item > label:first-child {
+  font-size: var(--t-sm);
+  color: rgba(200,220,255,0.74);
+  font-weight: 500;
+}
+
+/* iOS-style toggle — wraps input[type="checkbox"] */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 28px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.11);
+  border: 0.5px solid rgba(255,255,255,0.09);
+  border-radius: var(--r-pill);
+  transition:
+    background var(--dur-mid) var(--ease-snappy),
+    border-color var(--dur-mid);
+  cursor: pointer;
+}
+
+.slider::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(200,220,255,0.84);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.42);
+  transition:
+    transform var(--dur-mid) var(--ease-bounce),
+    background var(--dur-mid);
+}
+
+.toggle input:checked + .slider {
+  background: var(--ion);
+  border-color: rgba(0,212,255,0.38);
+  box-shadow: 0 0 9px rgba(0,212,255,0.28);
+}
+
+.toggle input:checked + .slider::before {
+  transform: translateX(20px);
+  background: white;
+}
+
+/* Camera resolution select — ID: #camera-resolution */
+select {
+  background: var(--glass-1);
+  border: 0.5px solid var(--glass-border);
+  border-radius: var(--r-sm);
+  padding: 6px 24px 6px 10px;
+  font-size: var(--t-xs);
+  font-family: var(--font-mono);
+  color: rgba(200,220,255,0.84);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(180,210,255,0.5)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  transition:
+    border-color var(--dur-fast) var(--ease-snappy),
+    background-color var(--dur-fast);
+  outline: none;
+}
+
+select:hover { border-color: rgba(0,212,255,0.28); }
+
+select option {
+  background: var(--panel);
+  color: rgba(232,244,255,0.92);
+}
+
+/* AR opacity range — ID: #ar-opacity */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 120px;
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: rgba(255,255,255,0.11);
+  outline: none;
+  cursor: pointer;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--ion);
+  box-shadow: 0 0 9px rgba(0,212,255,0.48), 0 2px 6px rgba(0,0,0,0.42);
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-bounce);
+}
+
+input[type='range']::-webkit-slider-thumb:hover { transform: scale(1.16); }
+
+input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ion);
+  box-shadow: 0 0 9px rgba(0,212,255,0.48);
+  cursor: pointer;
+}
+
+/* ─── §20  TOAST NOTIFICATIONS ───────────────────────────────────────────── */
+/* ID: #toast-container — populated by ui.js showToast() */
+#toast-container {
+  position: fixed;
+  top: calc(var(--status-h) + var(--safe-top) + var(--sp-4));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  pointer-events: none;
+  width: min(90vw, 360px);
+}
+
+/* Individual toast element — created by ui.js showToast() */
+/* border-left colour set inline by showToast() */
+.toast {
+  background: rgba(6,11,22,0.90);
+  backdrop-filter: blur(28px) saturate(1.7);
+  -webkit-backdrop-filter: blur(28px) saturate(1.7);
+  border: 0.5px solid rgba(255,255,255,0.094);
+  border-left: 3px solid var(--ion);  /* overridden inline by type */
+  border-radius: var(--r-md);
+  padding: 11px var(--sp-4);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: rgba(232,244,255,0.94);
+  box-shadow: var(--shadow-lg), 0 0 0 0.5px rgba(255,255,255,0.048);
+  pointer-events: auto;
+  cursor: pointer;
+  letter-spacing: -0.012em;
+  animation: toastSlideIn 0.32s var(--ease-expo) both;
+  width: 100%;
+  transform-origin: top center;
+}
+
+/* ─── §21  MODAL ─────────────────────────────────────────────────────────── */
+/* ID: #modal-overlay — shown/hidden by ui.js openModal() / closeModal() */
+/* aria-hidden toggled by ui.js for accessibility */
+#modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(1,3,10,0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--dur-mid) var(--ease-snappy),
+    visibility var(--dur-mid);
+  padding: var(--sp-4);
+  padding-bottom: calc(var(--sp-4) + var(--safe-bottom));
+}
+
+#modal-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  background: rgba(9,15,28,0.97);
+  backdrop-filter: blur(36px) saturate(1.6);
+  -webkit-backdrop-filter: blur(36px) saturate(1.6);
+  border: 0.5px solid rgba(255,255,255,0.094);
+  border-radius: var(--r-xl) var(--r-xl) var(--r-lg) var(--r-lg);
+  width: 100%;
+  max-width: 480px;
+  max-height: 78vh;
+  overflow-y: auto;
+  box-shadow: 0 -4px 40px rgba(0,0,0,0.62), 0 0 80px rgba(0,0,0,0.42);
+  transform: translateY(32px) scale(0.975);
+  transition: transform var(--dur-mid) var(--ease-expo);
+  position: relative;
+}
+
+#modal-overlay.visible .modal-content {
+  transform: none;
+}
+
+/* Pull handle */
+.modal-content::before {
+  content: '';
+  display: block;
+  width: 34px;
+  height: 4px;
+  background: rgba(255,255,255,0.14);
+  border-radius: var(--r-pill);
+  margin: var(--sp-3) auto var(--sp-2);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 0.5px solid rgba(255,255,255,0.058);
+}
+
+#modal-title {
+  font-size: var(--t-md);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+/* Close button — ID: #modal-close, wired by app.js */
+#modal-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.076);
+  border: 0.5px solid rgba(255,255,255,0.094);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  color: rgba(200,220,255,0.58);
+  transition:
+    background var(--dur-fast) var(--ease-snappy),
+    color var(--dur-fast),
+    transform var(--dur-fast) var(--ease-bounce);
+  touch-action: manipulation;
+}
+
+#modal-close:hover { background: rgba(255,79,94,0.18); color: var(--nova); }
+#modal-close:active { transform: scale(0.86); }
+
+#modal-body {
+  padding: var(--sp-5);
+}
+
+#modal-body p {
+  font-size: var(--t-sm);
+  color: rgba(200,220,255,0.74);
+  margin-bottom: var(--sp-3);
+  line-height: 1.65;
+}
+
+#modal-body p strong {
+  color: rgba(232,244,255,0.94);
+  font-weight: 700;
+}
+
+/* Affiliate / action CTA in modal */
+.affiliate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  background: var(--grad-brand);
+  color: white;
+  padding: 13px var(--sp-6);
+  border-radius: var(--r-pill);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  width: 100%;
+  margin-top: var(--sp-3);
+  box-shadow: 0 4px 18px rgba(0,212,255,0.32), 0 0 0 1px rgba(0,212,255,0.18);
+  transition:
+    transform var(--dur-fast) var(--ease-bounce),
+    box-shadow var(--dur-fast);
+  letter-spacing: -0.012em;
+  touch-action: manipulation;
+}
+
+.affiliate-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 30px rgba(0,212,255,0.48), 0 0 0 1px rgba(0,212,255,0.28);
+}
+
+.affiliate-btn:active { transform: scale(0.93); }
+
+/* ─── §22  PRINT SAFETY ──────────────────────────────────────────────────── */
+@media print {
+  #nav-bar,
+  .fab-container,
+  #bg-canvas,
+  #splash-screen,
+  #voice-bar,
+  .quick-actions,
+  #toast-container {
+    display: none !important;
+  }
+
+  #app { position: static; height: auto; overflow: visible; }
+  .page { position: static; transform: none; opacity: 1; visibility: visible; }
+  body { overflow: auto; position: static; }
+}
+
+/* ─── §23  HIGH-DPI HAIRLINE BORDERS ─────────────────────────────────────── */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
+  .status-bar,
+  #nav-bar,
+  #voice-bar,
+  .card,
+  .toast,
+  .modal-content {
+    border-width: 0.5px;
+  }
+}

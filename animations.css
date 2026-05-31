@@ -1,0 +1,894 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   SPATIAL AI EXPLORER — ANIMATIONS.CSS
+   Advanced motion design: keyframes · entrance sequences · micro-interactions
+   GPU-optimised: only transform & opacity animated (no layout-thrashing)
+   Performance budget: all animations use composite-layer properties only
+
+   Strategy:
+     • Only composite properties animated: transform, opacity, filter, clip-path
+     • will-change declared conservatively (only elements in active animation)
+     • animation-fill-mode: both to prevent pre/post frame flicker
+     • animation-play-state: paused respected by JS when tab hidden
+     • Prefers-reduced-motion hard-disables in responsive.css
+     • All timing uses CSS custom properties from core.css
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── §0  MOTION LAYER DECLARATIONS ─────────────────────────────────────── */
+/* Promote elements that animate frequently to their own GPU composite layers.
+   ONLY applied to elements that actually animate — over-use causes RAM waste. */
+
+.logo-svg,
+.splash-progress-fill,
+.scan-line,
+.status-dot,
+.fab::after,
+.nav-ripple,
+.logo-icon::before,
+.logo-icon::after {
+  will-change: transform, opacity;
+}
+
+/* ─── §1  SPLASH SCREEN ANIMATIONS ──────────────────────────────────────── */
+
+/* §1a  Ambient aurora breath — body::before on splash */
+@keyframes splashBreath {
+  0%   { opacity: 0.65; transform: scale(1.00); }
+  50%  { opacity: 0.90; transform: scale(1.04); }
+  100% { opacity: 1.00; transform: scale(1.08); }
+}
+
+/* §1b  Micro-grid slow drift */
+@keyframes gridDrift {
+  from { background-position: 0 0; }
+  to   { background-position: 44px 44px; }
+}
+
+/* §1c  Logo gentle float — .logo-svg */
+@keyframes logoFloat {
+  0%   { transform: translateY(0px) rotate(0deg); }
+  30%  { transform: translateY(-3px) rotate(-0.5deg); }
+  70%  { transform: translateY(-7px) rotate(0.5deg); }
+  100% { transform: translateY(-5px) rotate(0deg); }
+}
+
+/* §1d  Logo orbital ring spin — .logo-icon::before */
+@keyframes orbitalSpin {
+  from { transform: rotate(0deg) scaleX(0.38); }
+  to   { transform: rotate(360deg) scaleX(0.38); }
+}
+
+/* §1e  Inner corona pulse — .logo-icon::after */
+@keyframes coronaPulse {
+  0%   { transform: scale(0.92); opacity: 0.7; }
+  50%  { transform: scale(1.15); opacity: 0.4; }
+  100% { transform: scale(0.92); opacity: 0.0; }
+}
+
+/* §1f  Progress bar fill — .splash-progress-fill */
+@keyframes progressLoad {
+  0%   { width: 0%;    box-shadow: 0 0 6px var(--ion); }
+  60%  { width: 72%;   box-shadow: 0 0 12px var(--ion); }
+  85%  { width: 88%;   box-shadow: 0 0 10px var(--ion); }
+  100% { width: 100%;  box-shadow: 0 0 16px var(--ion), 0 0 32px rgba(0,212,255,0.3); }
+}
+
+/* ─── §2  UNIVERSAL ENTRANCE ANIMATIONS ──────────────────────────────────── */
+/* Used via animation: xxx var(--dur-xxx) var(--ease-xxx) delay both */
+
+/* §2a  Slide up & fade in — used by: splash text, FAB, voice bar */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* §2b  Slide down & fade in — used by: quick actions bar */
+@keyframes fadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* §2c  Drop from above with slight scale — used by: status bar */
+@keyframes dropIn {
+  0%   {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.96);
+  }
+  70%  {
+    opacity: 1;
+    transform: translateY(2px) scale(1.005);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* §2d  Slide up with bounce — used by: bottom nav, voice bar */
+@keyframes slideUp {
+  0%   {
+    opacity: 0;
+    transform: translateY(28px) scale(0.97);
+  }
+  65%  {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.008);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* §2e  Scale in from center — used by: detection box, modals */
+@keyframes boxAppear {
+  0%   {
+    opacity: 0;
+    transform: scale(0.82);
+    filter: blur(2px);
+  }
+  70%  {
+    opacity: 1;
+    transform: scale(1.04);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+/* §2f  Fade in only — minimal, used for overlay bg */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* §2g  Staggered pop — for list items */
+@keyframes itemPop {
+  0%   {
+    opacity: 0;
+    transform: translateX(-12px) scale(0.96);
+  }
+  60%  {
+    opacity: 1;
+    transform: translateX(3px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* ─── §3  STATUS BAR ANIMATIONS ─────────────────────────────────────────── */
+
+/* §3a  Status dot pulse — .status-dot, colour set by ui.js */
+@keyframes statusPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  45% {
+    opacity: 0.45;
+    transform: scale(0.80);
+  }
+  55% {
+    opacity: 0.45;
+    transform: scale(0.80);
+  }
+}
+
+/* §3b  Status badge flash — when value changes */
+@keyframes badgeFlash {
+  0%   { background: rgba(0,212,255,0.22); }
+  60%  { background: rgba(0,212,255,0.06); }
+  100% { background: rgba(255,255,255,0.038); }
+}
+
+/* ─── §4  CAMERA & SCAN ANIMATIONS ───────────────────────────────────────── */
+
+/* §4a  Scan sweep line — .scan-line inside .scan-reticle */
+@keyframes scanSweep {
+  0%   {
+    top: 2px;
+    opacity: 0;
+  }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% {
+    top: calc(100% - 2px);
+    opacity: 0;
+  }
+}
+
+/* §4b  Reticle corner flare — body.template-mode .scan-corner-* */
+@keyframes reticleFlare {
+  from {
+    box-shadow: 0 0 6px rgba(0,212,255,0.55);
+    border-color: rgba(0,212,255,0.82);
+  }
+  to {
+    box-shadow: 0 0 18px rgba(0,212,255,0.80), 0 0 32px rgba(0,212,255,0.25);
+    border-color: var(--ion);
+  }
+}
+
+/* §4c  Reticle active pulse (both corners simultaneously) */
+@keyframes reticleActivePulse {
+  0%, 100% { opacity: 0.8; }
+  50%       { opacity: 1.0; }
+}
+
+/* §4d  Detection box shimmer edge */
+@keyframes detectionShimmer {
+  0%   { border-color: rgba(62,232,220,0.60); }
+  50%  { border-color: rgba(62,232,220,0.90); }
+  100% { border-color: rgba(62,232,220,0.60); }
+}
+
+#detection-box:not(.hidden) {
+  animation:
+    boxAppear 0.32s var(--ease-bounce) both,
+    detectionShimmer 3s ease-in-out 0.35s infinite;
+}
+
+/* ─── §5  COMPASS RING ANIMATIONS ────────────────────────────────────────── */
+
+/* §5a  Compass ring glow pulse */
+@keyframes compassGlow {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(0,212,255,0.22)); }
+  50%       { filter: drop-shadow(0 0 18px rgba(0,212,255,0.42)); }
+}
+
+#compass-ring:not(.hidden) .compass-svg {
+  animation: compassGlow 3s ease-in-out infinite;
+}
+
+/* §5b  Compass needle wobble on target change */
+@keyframes compassAim {
+  0%  { transform: rotate(var(--compass-start, 0deg)); }
+  60% { transform: rotate(calc(var(--compass-end, 0deg) + 4deg)); }
+  80% { transform: rotate(calc(var(--compass-end, 0deg) - 2deg)); }
+  100%{ transform: rotate(var(--compass-end, 0deg)); }
+}
+
+/* ─── §6  VOICE BAR ANIMATIONS ───────────────────────────────────────────── */
+
+/* §6a  Voice wave bars — #voice-wave span elements */
+@keyframes voiceBarAnim {
+  0%, 100% {
+    transform: scaleY(0.35);
+    opacity: 0.42;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* §6b  Mic button listening ring */
+@keyframes micRing {
+  0% {
+    box-shadow:
+      0 0 0 0px rgba(0,212,255,0.38),
+      0 0 14px rgba(0,212,255,0.16);
+  }
+  100% {
+    box-shadow:
+      0 0 0 10px rgba(0,212,255,0),
+      0 0 20px rgba(0,212,255,0.08);
+  }
+}
+
+/* §6c  Voice bar listening state shimmer */
+@keyframes listeningShimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+#voice-bar.listening {
+  background-image: linear-gradient(
+    90deg,
+    rgba(6,11,22,0.74) 0%,
+    rgba(0,212,255,0.04) 30%,
+    rgba(6,11,22,0.74) 50%,
+    rgba(0,212,255,0.04) 70%,
+    rgba(6,11,22,0.74) 100%
+  );
+  background-size: 200% 100%;
+  animation: listeningShimmer 3s linear infinite;
+}
+
+/* ─── §7  NAVIGATION ANIMATIONS ─────────────────────────────────────────── */
+
+/* §7a  Active nav indicator dot grow */
+@keyframes dotGrow {
+  0%   {
+    width: 4px;
+    opacity: 0;
+    box-shadow: none;
+  }
+  60%  {
+    width: 22px;
+    opacity: 1;
+    box-shadow: 0 0 10px var(--ion);
+  }
+  100% {
+    width: 16px;
+    opacity: 1;
+    box-shadow: 0 0 8px var(--ion);
+  }
+}
+
+/* §7b  Nav ripple (tap feedback) — animated by ui.js addRippleEffect() */
+@keyframes rippleEffect {
+  from {
+    transform: scale(0);
+    opacity: 1;
+  }
+  to {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+/* §7c  Nav page transition — page exit */
+@keyframes pageExit {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px) scale(0.975);
+  }
+}
+
+/* §7d  Nav active icon bounce */
+@keyframes iconBounce {
+  0%   { transform: translateY(0) scale(1); }
+  30%  { transform: translateY(-6px) scale(1.14); }
+  60%  { transform: translateY(-2px) scale(0.96); }
+  80%  { transform: translateY(-4px) scale(1.04); }
+  100% { transform: translateY(-3px) scale(1.08); }
+}
+
+/* Apply bounce when nav becomes active */
+.nav-btn.active-nav .nav-icon {
+  animation: iconBounce 0.45s var(--ease-bounce) both;
+}
+
+/* ─── §8  FAB ANIMATIONS ─────────────────────────────────────────────────── */
+
+/* §8a  FAB orbital pulse ring — .fab::after */
+@keyframes fabPulse {
+  0%   {
+    transform: scale(1.00);
+    opacity: 0.48;
+    border-color: rgba(0,212,255,0.32);
+  }
+  50%  {
+    transform: scale(1.14);
+    opacity: 0.22;
+    border-color: rgba(0,212,255,0.18);
+  }
+  100% {
+    transform: scale(1.00);
+    opacity: 0.48;
+    border-color: rgba(0,212,255,0.32);
+  }
+}
+
+/* §8b  FAB glow breathe */
+@keyframes fabGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(0,212,255,0.22),
+      0 4px 22px rgba(0,212,255,0.28),
+      0 10px 30px rgba(0,0,0,0.42);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(0,212,255,0.38),
+      0 6px 28px rgba(0,212,255,0.40),
+      0 12px 36px rgba(0,0,0,0.42);
+  }
+}
+
+.fab {
+  animation: fabGlow 4s ease-in-out infinite;
+}
+
+/* §8c  FAB scan animation on click */
+@keyframes fabScan {
+  0%   { transform: scale(1) rotate(0deg); }
+  20%  { transform: scale(0.88) rotate(10deg); }
+  50%  { transform: scale(1.06) rotate(-5deg); }
+  80%  { transform: scale(0.96) rotate(2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.fab.scanning {
+  animation: fabScan 0.55s var(--ease-bounce) both;
+}
+
+/* ─── §9  CARD & PANEL ANIMATIONS ────────────────────────────────────────── */
+
+/* §9a  Card shimmer top border flow */
+@keyframes cardShimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 0.5px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.20) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  pointer-events: none;
+  /* Shimmer on hover only (precision pointer) */
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover::after {
+    animation: cardShimmer 0.7s var(--ease-silk) both;
+  }
+}
+
+/* §9b  Card entrance animation (staggered in lists) */
+@keyframes cardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Apply to cards sequentially via JS nth-child if needed */
+.card:nth-child(1) { animation: cardEntrance 0.45s var(--ease-expo) 0.05s both; }
+.card:nth-child(2) { animation: cardEntrance 0.45s var(--ease-expo) 0.12s both; }
+.card:nth-child(3) { animation: cardEntrance 0.45s var(--ease-expo) 0.19s both; }
+.card:nth-child(4) { animation: cardEntrance 0.45s var(--ease-expo) 0.26s both; }
+
+/* ─── §10  TOAST ANIMATIONS ──────────────────────────────────────────────── */
+
+/* §10a  Toast slide in from above center */
+@keyframes toastSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.93);
+    filter: blur(2px);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(3px) scale(1.01);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* §10b  Toast dismiss — applied inline by ui.js showToast() dismiss() */
+/* (CSS only fallback — JS adds style.transition for individual dismiss) */
+
+/* ─── §11  MAP & EXPLORE ANIMATIONS ─────────────────────────────────────── */
+
+/* §11a  Location pin float — .map-pin */
+@keyframes pinFloat {
+  from { transform: translateY(0px) scale(1.00); }
+  to   { transform: translateY(-8px) scale(1.04); }
+}
+
+/* §11b  Map grid drift (subtle parallax) */
+@keyframes mapGridDrift {
+  from { background-position: 0 0; }
+  to   { background-position: 30px 30px; }
+}
+
+.map-placeholder {
+  animation: mapGridDrift 20s linear infinite;
+}
+
+/* §11c  POI item stagger entrance */
+.poi-list > *:nth-child(1) { animation: itemPop 0.35s var(--ease-expo) 0.05s both; }
+.poi-list > *:nth-child(2) { animation: itemPop 0.35s var(--ease-expo) 0.10s both; }
+.poi-list > *:nth-child(3) { animation: itemPop 0.35s var(--ease-expo) 0.15s both; }
+.poi-list > *:nth-child(4) { animation: itemPop 0.35s var(--ease-expo) 0.20s both; }
+.poi-list > *:nth-child(5) { animation: itemPop 0.35s var(--ease-expo) 0.25s both; }
+
+/* ─── §12  PROFILE & STATS ANIMATIONS ───────────────────────────────────── */
+
+/* §12a  Stat counter number pop */
+@keyframes statPop {
+  0%   { transform: scale(0.85); opacity: 0; }
+  65%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1.00); opacity: 1; }
+}
+
+/* Applied when stat values update (JS may add/remove a class) */
+.stat strong.updated {
+  animation: statPop 0.38s var(--ease-bounce) both;
+}
+
+/* §12b  Template item entrance */
+.template-item {
+  animation: itemPop 0.32s var(--ease-expo) both;
+}
+
+/* ─── §13  SETTINGS PAGE ANIMATIONS ─────────────────────────────────────── */
+
+/* §13a  Toggle switch thumb slide (extended) */
+/* Main transition in core.css, this adds a subtle bounce overshoot */
+.toggle input:checked + .slider::before {
+  transition:
+    transform 240ms var(--ease-bounce),
+    background 200ms var(--ease-snappy);
+}
+
+.toggle input:not(:checked) + .slider::before {
+  transition:
+    transform 200ms var(--ease-silk),
+    background 200ms var(--ease-snappy);
+}
+
+/* §13b  Setting item hover slide — desktop only */
+@media (hover: hover) and (pointer: fine) {
+  .setting-item:hover {
+    transition: padding-left var(--dur-fast) var(--ease-expo);
+    padding-left: 4px;
+  }
+}
+
+/* ─── §14  MODAL ANIMATIONS ──────────────────────────────────────────────── */
+
+/* §14a  Modal overlay backdrop blur pulse on entry */
+@keyframes backdropIn {
+  from { backdrop-filter: blur(0px); }
+  to   { backdrop-filter: blur(14px); }
+}
+
+#modal-overlay.visible {
+  animation: backdropIn var(--dur-mid) var(--ease-snappy) forwards;
+}
+
+/* §14b  Modal bottom-sheet drag indicator pulse */
+@keyframes dragPulse {
+  0%, 100% { background: rgba(255,255,255,0.14); width: 34px; }
+  50%       { background: rgba(255,255,255,0.24); width: 44px; }
+}
+
+.modal-content::before {
+  animation: dragPulse 3s ease-in-out 1s infinite;
+  margin: var(--sp-3) auto var(--sp-2);
+}
+
+/* §14c  CTA button gradient shimmer */
+@keyframes ctaShimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.affiliate-btn {
+  background-size: 200% 100%;
+  background-image: linear-gradient(
+    90deg,
+    #00d4ff 0%,
+    #8b3dff 30%,
+    #00d4ff 50%,
+    #8b3dff 70%,
+    #00d4ff 100%
+  );
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .affiliate-btn:hover {
+    animation: ctaShimmer 1.2s linear infinite;
+  }
+}
+
+/* ─── §15  BACKGROUND PARTICLE SYSTEM ────────────────────────────────────── */
+/* Particle animation driven by ui.js initBackground() → _bgTick() via canvas.
+   These CSS rules enhance the canvas with additional CSS-layer effects. */
+
+/* Radial mesh pulse — body::before, augments JS particles */
+@keyframes meshPulse {
+  0%, 100% {
+    opacity: 0.85;
+    transform: scale(1.00);
+  }
+  50% {
+    opacity: 1.00;
+    transform: scale(1.02);
+  }
+}
+
+body::before {
+  animation: meshPulse 12s ease-in-out infinite alternate;
+}
+
+/* ─── §16  PAGE TRANSITION SYSTEM ────────────────────────────────────────── */
+/* ui.js navigateTo() orchestrates these via .active / .page-exit classes */
+
+/* Ensure entering page has smooth entry */
+.page.active {
+  /* Entry defined in core.css; only add motion here */
+  transition:
+    opacity var(--dur-mid) var(--ease-expo),
+    transform var(--dur-mid) var(--ease-expo),
+    visibility var(--dur-mid);
+}
+
+/* Seamless exit via spring curve */
+.page.page-exit {
+  transition:
+    opacity 200ms var(--ease-silk),
+    transform 200ms var(--ease-silk),
+    visibility 200ms;
+}
+
+/* Page-specific entrance delays for content within */
+#explore-page.active .search-box   { animation: fadeSlideUp 0.38s var(--ease-expo) 0.05s both; }
+#explore-page.active #map-container { animation: fadeSlideUp 0.38s var(--ease-expo) 0.12s both; }
+#explore-page.active #poi-list     { animation: fadeSlideUp 0.38s var(--ease-expo) 0.18s both; }
+
+#profile-page.active .profile-grid > .card:nth-child(1) { animation: cardEntrance 0.4s var(--ease-expo) 0.06s both; }
+#profile-page.active .profile-grid > .card:nth-child(2) { animation: cardEntrance 0.4s var(--ease-expo) 0.13s both; }
+#profile-page.active .profile-grid > .card:nth-child(3) { animation: cardEntrance 0.4s var(--ease-expo) 0.20s both; }
+
+#settings-page.active .card { animation: cardEntrance 0.38s var(--ease-expo) 0.08s both; }
+
+/* ─── §17  INTERACTION MICRO-ANIMATIONS ──────────────────────────────────── */
+
+/* §17a  Scan button active state — sends visual confirmation */
+@keyframes scanActivate {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(0.88); }
+  60%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+#scanBtn:active {
+  animation: scanActivate 0.32s var(--ease-bounce) both;
+}
+
+/* §17b  Flashlight toggle flash */
+@keyframes lightFlash {
+  0%   { filter: brightness(1); }
+  20%  { filter: brightness(2.5); }
+  100% { filter: brightness(1); }
+}
+
+#flashlightBtn.mode-active {
+  animation: lightFlash 0.4s var(--ease-snappy) both;
+}
+
+/* §17c  Template set success glow */
+@keyframes templateSuccess {
+  0%   { box-shadow: none; }
+  30%  { box-shadow: 0 0 0 4px rgba(62,232,220,0.4), 0 0 20px rgba(62,232,220,0.3); }
+  100% { box-shadow: none; }
+}
+
+#setTemplateBtn.mode-active {
+  animation: templateSuccess 1.2s ease-out 0.2s both;
+}
+
+/* §17d  Back button arrow micro-animation */
+@keyframes arrowBounce {
+  0%   { transform: translateX(0); }
+  35%  { transform: translateX(-4px); }
+  65%  { transform: translateX(1px); }
+  100% { transform: translateX(0); }
+}
+
+.back-btn:hover {
+  animation: arrowBounce 0.38s var(--ease-bounce);
+}
+
+/* §17e  GPS badge pulse when fix acquired */
+@keyframes gpsFix {
+  0%   { color: rgba(200,220,255,0.52); }
+  30%  { color: var(--verdant); }
+  60%  { color: rgba(200,220,255,0.52); }
+  80%  { color: var(--verdant); }
+  100% { color: rgba(200,220,255,0.52); }
+}
+
+/* Applied by JS when GPS first gets fix (optional enhancement) */
+#gps-badge.fix-acquired {
+  animation: gpsFix 1s ease-in-out both;
+}
+
+/* §17f  Battery low warning pulse */
+@keyframes batteryWarn {
+  0%, 100% { color: rgba(200,220,255,0.52); }
+  50%       { color: var(--nova); }
+}
+
+#battery-badge.low {
+  animation: batteryWarn 1.8s ease-in-out infinite;
+}
+
+/* ─── §18  CAMERA FEED ENTRANCE ──────────────────────────────────────────── */
+
+/* Video element fade in when stream is ready */
+@keyframes cameraReady {
+  from {
+    opacity: 0;
+    filter: brightness(0.5) blur(3px);
+  }
+  to {
+    opacity: 1;
+    filter: brightness(1) blur(0);
+  }
+}
+
+#video.stream-active {
+  animation: cameraReady 0.65s var(--ease-expo) both;
+}
+
+/* Overlay canvas fade in */
+@keyframes overlayReveal {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+#overlay-canvas {
+  animation: overlayReveal 0.4s var(--ease-snappy) 0.5s both;
+}
+
+/* ─── §19  ACCESSIBILITY & FOCUS ANIMATIONS ──────────────────────────────── */
+
+/* §19a  Focus ring pulse — draws attention without distracting */
+@keyframes focusRingPulse {
+  0%   { outline-offset: 3px; }
+  50%  { outline-offset: 5px; }
+  100% { outline-offset: 3px; }
+}
+
+:focus-visible {
+  animation: focusRingPulse 1s ease-in-out infinite;
+}
+
+/* §19b  Error state shake — for form inputs etc */
+@keyframes shakeError {
+  0%   { transform: translateX(0); }
+  18%  { transform: translateX(-8px); }
+  36%  { transform: translateX(7px); }
+  54%  { transform: translateX(-5px); }
+  72%  { transform: translateX(4px); }
+  90%  { transform: translateX(-2px); }
+  100% { transform: translateX(0); }
+}
+
+.error-shake {
+  animation: shakeError 0.5s var(--ease-snappy) both;
+}
+
+/* ─── §20  SHIMMER LOADING SKELETON ─────────────────────────────────────── */
+/* For async data loading states (POI list, templates loading) */
+
+@keyframes shimmerSkeleton {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 0px,
+    rgba(255,255,255,0.10) 40%,
+    rgba(255,255,255,0.04) 80px
+  );
+  background-size: 400px 100%;
+  animation: shimmerSkeleton 1.4s ease-in-out infinite;
+  border-radius: var(--r-sm);
+  pointer-events: none;
+}
+
+.skeleton-text {
+  height: 12px;
+  border-radius: var(--r-2xs);
+  margin-bottom: 8px;
+}
+
+.skeleton-text.wide  { width: 80%; }
+.skeleton-text.mid   { width: 60%; }
+.skeleton-text.short { width: 40%; }
+
+/* ─── §21  ADVANCED GLASS LIGHT EFFECTS ─────────────────────────────────── */
+
+/* §21a  Moving specular highlight on status bar */
+@keyframes specularMove {
+  0%   { left: 15%; right: 65%; opacity: 0.12; }
+  30%  { left: 40%; right: 40%; opacity: 0.22; }
+  60%  { left: 65%; right: 15%; opacity: 0.12; }
+  100% { left: 15%; right: 65%; opacity: 0.12; }
+}
+
+.status-bar::before {
+  animation: specularMove 10s ease-in-out infinite;
+}
+
+/* §21b  Nav bar specular pulse */
+@keyframes navSpecular {
+  0%   { left: 18%; right: 62%; opacity: 0.10; }
+  50%  { left: 62%; right: 18%; opacity: 0.18; }
+  100% { left: 18%; right: 62%; opacity: 0.10; }
+}
+
+#nav-bar::before {
+  animation: navSpecular 12s ease-in-out infinite;
+}
+
+/* §21c  Voice bar listening shimmer override */
+/* (Handles the border glow ripple effect when listening) */
+@keyframes borderGlowPulse {
+  0%, 100% {
+    border-color: rgba(0,212,255,0.38);
+    box-shadow: var(--shadow-panel), 0 0 0 1px rgba(0,212,255,0.18), 0 0 28px rgba(0,212,255,0.10);
+  }
+  50% {
+    border-color: rgba(0,212,255,0.55);
+    box-shadow: var(--shadow-panel), 0 0 0 1px rgba(0,212,255,0.28), 0 0 40px rgba(0,212,255,0.16);
+  }
+}
+
+#voice-bar.listening {
+  animation: borderGlowPulse 2s ease-in-out infinite,
+             listeningShimmer 3s linear infinite;
+}
+
+/* ─── §22  REDUCED MOTION OVERRIDE ─────────────────────────────────────────
+   Extra specificity layer. responsive.css applies the global disable,
+   but these high-specificity rules enforce it for animation-driven state. */
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  .status-bar::before,
+  #nav-bar::before,
+  #voice-bar,
+  #voice-bar.listening,
+  .modal-content::before,
+  .affiliate-btn,
+  .map-placeholder,
+  .fab,
+  #overlay-canvas,
+  .nav-btn.active-nav .nav-icon,
+  .poi-list > *,
+  .card,
+  #profile-page.active .profile-grid > .card,
+  #explore-page.active .search-box,
+  #explore-page.active #map-container,
+  #explore-page.active #poi-list,
+  #settings-page.active .card,
+  :focus-visible,
+  #detection-box:not(.hidden) {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}
