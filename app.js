@@ -83,7 +83,7 @@ async function start() {
   setSavedTemplates(templates);
   _applyPersistedSettings(settings);
 
-  // ── 5. WASM core ──────────────────────────────────────────────────────────
+ // ── 5. WASM core ──────────────────────────────────────────────────────────
   updateStatus('Loading AI engine…');
 
   try {
@@ -93,13 +93,23 @@ async function start() {
     // 1. Load saved user settings (from storage.js)
     const savedSettings = await loadSettings() || {};
     
-    // 2. Define defaults to prevent "missing field" errors
+    // 2. Define defaults matching the Rust 'DetectionConfig' struct exactly
     const defaultConfig = {
-      min_confidence: 0.35,
-      max_results: 5,
-      multi_scale: true,
-      iou_threshold: 0.3,
-      harris_k: 0.04
+        min_confidence: 0.35,
+        max_results: 5,
+        step: 2,
+        multi_scale: true,
+        use_edges: false,
+        use_color: true,
+        use_features: false,
+        pyramid_levels: 3,
+        harris_k: 0.04,
+        harris_threshold: 1e6, // Note: Rust uses 1e6 (number), not "1e6" (string)
+        min_feature_inliers: 6,
+        ransac_iterations: 200,
+        histogram_gate: 0.10,
+        iou_threshold: 0.30,
+        search_margin: 64
     };
 
     // 3. Merge saved settings with defaults and configure
@@ -113,7 +123,7 @@ async function start() {
     updateStatus('AI limited — WASM unavailable', 'warn');
     showToast('Core AI engine failed to load', 'error');
   }
-  
+
   hideSplash();
 
   // ── 6. Sensors ────────────────────────────────────────────────────────────
