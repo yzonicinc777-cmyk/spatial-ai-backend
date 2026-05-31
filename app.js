@@ -87,9 +87,13 @@ async function start() {
   updateStatus('Loading AI engine…');
 
   try {
-    await init();
+    await init(); // This is the crucial await
     setState({ wasmReady: true });
-    console.info('[app]', greet('Explorer'));
+    
+    // Configure the engine (optional, based on your lib.rs)
+    configure(JSON.stringify({ min_confidence: 0.35 })); 
+    
+    console.info('[app] Spatial AI Core loaded and configured');
     updateStatus('AI engine ready');
   } catch (err) {
     console.error('[app] WASM init failed:', err);
