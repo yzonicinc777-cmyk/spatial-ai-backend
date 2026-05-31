@@ -6,6 +6,8 @@
   <title>Spatial AI • Explorer</title>
   <meta name="description" content="Point your camera, find anything. A spatial browser for the real world." />
   <meta name="theme-color" content="#0a0f1c" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="format-detection" content="telephone=no" />
 
   <!-- PWA / mobile shell -->
   <meta name="mobile-web-app-capable" content="yes" />
@@ -41,8 +43,8 @@
   " />
 
   <!-- Stylesheet (preload + load; crossorigin="anonymous" matches module fetch mode) -->
-  <link rel="preload" href="/style.css" as="style" />
-<link rel="stylesheet" href="/style.css" />
+  <link rel="preload" href="/style.evolved.v2.css" as="style" />
+<link rel="stylesheet" href="/style.evolved.v2.css" />
   <!--
     app.js is a JS module (type="module"), so the browser fetches it with
     credentials mode "omit" by default. The preload must carry
@@ -56,8 +58,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+
+  <!-- Fix: ui.js expects a .status-dot element; ensure it's present -->
+  <!-- (status dot already exists in markup below: <span class="status-dot"></span>) -->
+
 </head>
-<body>
+<body class="spatial-shell">
 
   <!-- ============= SPLASH SCREEN ============= -->
   <div id="splash-screen" class="splash-screen">
@@ -309,9 +315,6 @@
     </div>
 
   </div><!-- /#app -->
-
-  <!-- ============= SCREEN-READER UTILITY CLASS ============= -->
-  <style>.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}</style>
 
   <!-- Entry point — type="module" fetches with credentials:"omit",
        matching the modulepreload above, so no cache miss warning -->

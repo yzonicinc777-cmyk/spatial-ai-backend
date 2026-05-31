@@ -2015,3 +2015,1231 @@ body.template-mode .scan-reticle::after {
   color: var(--text-muted);
   font-size: 0.82rem;
 }
+
+/* ============================================================
+   18. ARCHITECTURAL RESPONSIVE UPGRADE
+   - Preserves all existing content and IDs
+   - Adds desktop/tablet spatial layout, stronger hierarchy,
+     cleaner motion budgets, and premium glass/mesh surfaces
+   ============================================================ */
+
+:root {
+  --shell-max: min(1440px, calc(100vw - 32px));
+  --shell-pad: clamp(16px, 2vw, 28px);
+  --desktop-nav-w: 96px;
+  --desktop-panel-w: min(420px, 34vw);
+}
+
+/* Ambient backdrop for a more architectural feel */
+body.spatial-shell {
+  background:
+    radial-gradient(1200px 700px at 18% 8%, rgba(0, 212, 255, 0.11), transparent 56%),
+    radial-gradient(900px 600px at 82% 18%, rgba(123, 47, 247, 0.13), transparent 52%),
+    radial-gradient(700px 520px at 50% 88%, rgba(78, 205, 196, 0.07), transparent 58%),
+    linear-gradient(180deg, #050912 0%, #07101f 48%, #050912 100%);
+  background-attachment: fixed;
+}
+
+body.spatial-shell::before,
+body.spatial-shell::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body.spatial-shell::before {
+  opacity: 0.25;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(circle at center, black 20%, transparent 82%);
+}
+
+body.spatial-shell::after {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,0.08), transparent 26%),
+    radial-gradient(circle at 50% 100%, rgba(0,0,0,0.22), transparent 24%);
+  opacity: 0.9;
+}
+
+#app {
+  isolation: isolate;
+}
+
+/* Keep the camera stage dominant while letting pages feel like panels */
+.page {
+  scrollbar-gutter: stable both-edges;
+}
+
+.page-header {
+  gap: clamp(12px, 1.6vw, 18px);
+}
+
+.page-header h2 {
+  font-size: clamp(1.35rem, 1.8vw, 1.75rem);
+}
+
+.card,
+.voice-command-bar,
+.quick-action-btn,
+.bottom-nav,
+.status-bar,
+.toast,
+.modal-content,
+.search-input,
+.search-btn {
+  backdrop-filter: blur(24px) saturate(1.45);
+  -webkit-backdrop-filter: blur(24px) saturate(1.45);
+}
+
+/* Better large-screen composition */
+@media (min-width: 768px) {
+  .status-bar {
+    width: min(var(--shell-max), calc(100vw - 32px));
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+
+  .main-content {
+    width: min(var(--shell-max), 100vw);
+    margin-inline: auto;
+  }
+
+  .page {
+    padding-left: clamp(20px, 2.5vw, 36px);
+    padding-right: clamp(20px, 2.5vw, 36px);
+  }
+
+  .voice-command-bar {
+    width: min(740px, calc(100vw - 48px));
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .quick-actions {
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(var(--nav-h) + var(--nav-bottom) + 88px + var(--safe-bottom));
+  }
+
+  .fab-container {
+    right: calc(28px + var(--safe-right));
+    bottom: calc(var(--nav-h) + var(--nav-bottom) + 20px + var(--safe-bottom));
+  }
+}
+
+@media (min-width: 1024px) {
+  body.spatial-shell {
+    padding-left: calc(var(--desktop-nav-w) + 16px);
+  }
+
+  .status-bar {
+    top: calc(16px + var(--safe-top));
+  }
+
+  .bottom-nav {
+    left: calc(18px + var(--safe-left));
+    right: auto;
+    top: 50%;
+    bottom: auto;
+    width: var(--desktop-nav-w);
+    height: auto;
+    transform: translateY(-50%);
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 10px;
+    border-radius: 28px;
+  }
+
+  .nav-btn {
+    width: 100%;
+    flex: 0 0 auto;
+    padding: 14px 10px;
+  }
+
+  .nav-label {
+    font-size: 0.68rem;
+  }
+
+  .nav-btn::after {
+    bottom: 10px;
+    width: 22px;
+  }
+
+  #camera-page .camera-container {
+    inset: 20px;
+    border-radius: 40px;
+    overflow: hidden;
+    box-shadow:
+      0 28px 80px rgba(0, 0, 0, 0.45),
+      inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  #camera-page .camera-container::after {
+    border-radius: inherit;
+  }
+
+  .quick-actions {
+    bottom: calc(28px + var(--safe-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: min(760px, calc(100vw - 220px));
+  }
+
+  .voice-command-bar {
+    bottom: calc(104px + var(--safe-bottom));
+    width: min(820px, calc(100vw - 220px));
+  }
+
+  .compass-ring {
+    right: calc(28px + var(--safe-right));
+    bottom: calc(104px + var(--safe-bottom));
+  }
+
+  .fab-container {
+    right: calc(28px + var(--safe-right));
+    bottom: calc(28px + var(--safe-bottom));
+  }
+
+  .explore-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    gap: clamp(18px, 2vw, 28px);
+    align-items: start;
+  }
+
+  .explore-container .search-box {
+    grid-column: 1 / -1;
+  }
+
+  .map-container {
+    height: min(52vh, 620px);
+  }
+
+  .poi-list {
+    max-height: min(52vh, 620px);
+    overflow: auto;
+    padding-right: 4px;
+  }
+
+  .profile-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .profile-grid .card {
+    min-width: 0;
+  }
+
+  .profile-grid .card:nth-child(1) {
+    grid-column: 1 / span 7;
+  }
+
+  .profile-grid .card:nth-child(2) {
+    grid-column: 8 / span 5;
+  }
+
+  .profile-grid .card:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .stats-grid {
+    gap: 14px;
+  }
+
+  .card {
+    border-radius: 26px;
+  }
+}
+
+@media (min-width: 1280px) {
+  body.spatial-shell {
+    padding-left: calc(var(--desktop-nav-w) + 28px);
+  }
+
+  .page {
+    padding-top: calc(var(--status-h) + 30px + var(--safe-top));
+    padding-bottom: calc(var(--nav-h) + 34px + var(--safe-bottom));
+  }
+
+  .voice-command-bar {
+    width: min(880px, calc(100vw - 280px));
+  }
+
+  .quick-actions {
+    max-width: min(880px, calc(100vw - 280px));
+  }
+
+  .status-indicator {
+    max-width: 260px;
+  }
+}
+
+/* High-density, small-screen refinement */
+@media (max-width: 480px) {
+  .status-bar {
+    padding-inline: 14px;
+  }
+
+  .voice-command-bar {
+    padding-inline: 12px;
+  }
+
+  .quick-actions {
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100vw - 40px);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .quick-action-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .modal-content {
+    width: 100%;
+    max-width: 560px;
+  }
+}
+
+/* Improve visual clarity when blur isn't available */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .status-bar,
+  .voice-command-bar,
+  .quick-action-btn,
+  .bottom-nav,
+  .card,
+  .toast,
+  .modal-content,
+  .search-input {
+    background: rgba(10, 18, 34, 0.92);
+  }
+}
+
+/* Reduce motion and GPU-heavy effects when requested */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  #bg-canvas,
+  .logo-icon::after,
+  .splash-screen::before,
+  .fab,
+  .status-dot,
+  .mic-btn.listening,
+  .voice-wave.listening span,
+  .map-pin {
+    animation: none !important;
+  }
+}
+
+@media (prefers-reduced-data: reduce) {
+  #bg-canvas {
+    display: none;
+  }
+}
+
+/* Print-safe fallback */
+@media print {
+  #bg-canvas,
+  #splash-screen,
+  .bottom-nav,
+  .fab-container,
+  .toast-container,
+  .modal-overlay,
+  .voice-command-bar,
+  .quick-actions,
+  .scan-reticle,
+  .compass-ring,
+  #overlay-canvas {
+    display: none !important;
+  }
+
+  body.spatial-shell {
+    background: #fff !important;
+    color: #000 !important;
+  }
+}
+
+/* ============================================================
+   18. ULTRA-RESPONSIVE ARCHITECTURAL EVOLUTION
+   - preserves existing selectors/IDs
+   - upgrades mobile/tablet/desktop layouts
+   - emphasizes transform/opacity-based motion
+   - reduces paint cost with containment and visibility hints
+   ============================================================ */
+
+/* Architectural tokens */
+:root {
+  --shell-max: 1680px;
+  --shell-gutter: clamp(14px, 2vw, 28px);
+  --shell-gap: clamp(16px, 2vw, 28px);
+  --desktop-nav-w: 92px;
+  --desktop-nav-expanded-w: 306px;
+  --panel-max: 440px;
+  --panel-wide: 560px;
+  --surface-border-strong: rgba(255, 255, 255, 0.12);
+  --surface-border-soft: rgba(255, 255, 255, 0.06);
+  --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.18);
+  --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.42);
+  --shadow-lift: 0 20px 52px rgba(0, 0, 0, 0.36);
+  --blur-soft: 14px;
+  --blur-mid: 24px;
+  --blur-strong: 38px;
+  --focus-ring: 0 0 0 3px rgba(0, 212, 255, 0.22), 0 0 0 1px rgba(0, 212, 255, 0.55) inset;
+  --page-scrim: linear-gradient(180deg, rgba(4, 8, 16, 0.54), rgba(4, 8, 16, 0.82));
+  --surface-grad: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  --surface-grad-strong: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.03));
+}
+
+/* Global shell */
+html,
+body {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(0, 212, 255, 0.12), transparent 28%),
+    radial-gradient(circle at 80% 18%, rgba(123, 47, 247, 0.12), transparent 32%),
+    radial-gradient(circle at 50% 100%, rgba(255, 95, 109, 0.08), transparent 22%),
+    var(--bg-deep);
+}
+
+body.spatial-shell {
+  width: 100%;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  isolation: isolate;
+  touch-action: manipulation;
+  overscroll-behavior: none;
+}
+
+#app,
+.app-container {
+  background: transparent;
+}
+
+#app {
+  max-width: 100%;
+}
+
+/* Screen background layers */
+body.spatial-shell::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(70% 50% at 15% 12%, rgba(0, 212, 255, 0.06), transparent 65%),
+    radial-gradient(60% 56% at 88% 18%, rgba(123, 47, 247, 0.06), transparent 68%),
+    radial-gradient(50% 44% at 50% 95%, rgba(255, 179, 71, 0.04), transparent 70%);
+  z-index: 0;
+}
+
+/* Container for the full app */
+.app-container {
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  align-items: stretch;
+}
+
+/* Performance hints */
+.page,
+.card,
+.modal-content,
+.bottom-nav,
+.status-bar,
+.voice-command-bar,
+.quick-action-btn,
+.toast,
+.search-input,
+.map-container {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.page {
+  width: 100%;
+  max-width: var(--shell-max);
+  margin: 0 auto;
+  border-radius: 0;
+  background:
+    linear-gradient(180deg, rgba(7, 12, 22, 0.72), rgba(7, 12, 22, 0.86)),
+    var(--page-scrim);
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+
+.page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at top center, rgba(255,255,255,0.06), transparent 32%),
+    linear-gradient(180deg, rgba(255,255,255,0.04), transparent 28%);
+  opacity: 0.8;
+}
+
+.page.active {
+  box-shadow: none;
+}
+
+.page > * {
+  position: relative;
+  z-index: 1;
+}
+
+.camera-container,
+.explore-container,
+.profile-grid,
+.card,
+.modal-content {
+  container-type: inline-size;
+}
+
+.page-header,
+.explore-container,
+.profile-grid,
+.camera-container {
+  width: min(100%, var(--shell-max));
+  margin-inline: auto;
+}
+
+/* Camera experience */
+#camera-page {
+  max-width: none;
+}
+
+.camera-container {
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255,255,255,0.04), transparent 24%),
+    #000;
+}
+
+#video,
+#overlay-canvas {
+  border-radius: 0;
+}
+
+#video {
+  filter: saturate(1.06) contrast(1.03);
+}
+
+.camera-container::after {
+  background:
+    radial-gradient(ellipse at center, transparent 38%, rgba(0,0,0,0.42) 100%),
+    linear-gradient(to bottom, rgba(0,0,0,0.22) 0%, transparent 18%, transparent 72%, rgba(0,0,0,0.62) 100%);
+}
+
+/* Subtle camera grid overlay for premium feel */
+.camera-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 20% 20%, 20% 20%;
+  mix-blend-mode: screen;
+  opacity: 0.22;
+}
+
+/* Make overlays more architectural */
+.scan-reticle {
+  width: clamp(140px, 24vw, 220px);
+  height: clamp(140px, 24vw, 220px);
+  opacity: 0.85;
+}
+
+.detection-box {
+  border-radius: calc(var(--r-md) + 4px);
+  background: linear-gradient(180deg, rgba(4, 8, 16, 0.64), rgba(4, 8, 16, 0.44));
+  border: 1px solid rgba(0, 212, 255, 0.42);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.04) inset, var(--shadow-strong), var(--glow-cyan);
+  backdrop-filter: blur(var(--blur-mid)) saturate(1.4);
+  -webkit-backdrop-filter: blur(var(--blur-mid)) saturate(1.4);
+}
+
+.detection-buy-btn,
+.search-btn,
+.fab,
+.mic-btn {
+  will-change: transform, opacity;
+}
+
+.detection-buy-btn:focus-visible,
+.search-btn:focus-visible,
+.fab:focus-visible,
+.mic-btn:focus-visible,
+.nav-btn:focus-visible,
+.back-btn:focus-visible,
+.quick-action-btn:focus-visible,
+.modal-close:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* More balanced bottom UI */
+.voice-command-bar {
+  width: min(980px, calc(100vw - 32px));
+  left: 50%;
+  transform: translateX(-50%);
+  border: 1px solid rgba(255,255,255,0.08);
+  background:
+    linear-gradient(180deg, rgba(12, 20, 38, 0.88), rgba(12, 20, 38, 0.76)),
+    var(--surface-grad);
+}
+
+.quick-actions {
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(980px, calc(100vw - 32px));
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.quick-action-btn {
+  min-height: 44px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(var(--blur-soft));
+  -webkit-backdrop-filter: blur(var(--blur-soft));
+}
+
+.quick-action-btn:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
+}
+
+/* Page header and cards */
+.page-header {
+  margin-bottom: clamp(14px, 2vw, 24px);
+}
+
+.page-header h2 {
+  font-size: clamp(1.25rem, 2vw, 1.85rem);
+  letter-spacing: -0.03em;
+}
+
+.card {
+  background:
+    linear-gradient(180deg, rgba(13, 21, 38, 0.84), rgba(10, 16, 30, 0.72)),
+    var(--surface-grad);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(var(--blur-mid)) saturate(1.15);
+  -webkit-backdrop-filter: blur(var(--blur-mid)) saturate(1.15);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lift);
+}
+
+.card,
+.modal-content,
+.poi-item,
+.template-item,
+.stat,
+.toast,
+.bottom-nav,
+.status-bar,
+.voice-command-bar {
+  contain: layout paint style;
+}
+
+/* Explore */
+.explore-container {
+  gap: clamp(14px, 2vw, 24px);
+}
+
+.search-box {
+  flex-wrap: wrap;
+}
+
+.search-input {
+  min-width: 0;
+  flex: 1 1 280px;
+  min-height: 52px;
+  border: 1px solid rgba(255,255,255,0.09);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)),
+    rgba(255,255,255,0.04);
+}
+
+.map-container {
+  min-height: 240px;
+  height: clamp(240px, 36vh, 420px);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: var(--shadow-soft);
+  background:
+    radial-gradient(circle at center, rgba(0, 212, 255, 0.08), transparent 48%),
+    rgba(0,0,0,0.42);
+}
+
+.poi-list {
+  content-visibility: auto;
+  contain-intrinsic-size: 260px;
+}
+
+.poi-item {
+  border: 1px solid rgba(255,255,255,0.08);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)),
+    rgba(255,255,255,0.04);
+}
+
+/* Profile */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(12px, 1.6vw, 20px);
+}
+
+.templates-list,
+.stats-grid {
+  content-visibility: auto;
+  contain-intrinsic-size: 220px;
+}
+
+.stats-grid {
+  gap: 12px;
+}
+
+.stat {
+  border: 1px solid rgba(255,255,255,0.08);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)),
+    rgba(255,255,255,0.04);
+}
+
+.setting-item {
+  gap: 18px;
+}
+
+.toggle {
+  width: 54px;
+  height: 32px;
+}
+
+.slider::before {
+  width: 25px;
+  height: 25px;
+}
+
+/* Settings */
+select,
+input[type="range"] {
+  accent-color: var(--accent-cyan);
+}
+
+select {
+  min-height: 42px;
+  border: 1px solid rgba(255,255,255,0.09);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)),
+    rgba(255,255,255,0.04);
+}
+
+input[type="range"] {
+  width: min(180px, 40vw);
+}
+
+/* Bottom navigation — morph into desktop rail */
+.bottom-nav {
+  width: min(980px, calc(100vw - 32px));
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--nav-bottom) + var(--safe-bottom));
+  border: 1px solid rgba(255,255,255,0.08);
+  background:
+    linear-gradient(180deg, rgba(10, 18, 34, 0.84), rgba(10, 18, 34, 0.74)),
+    var(--surface-grad);
+}
+
+.nav-btn {
+  min-width: 0;
+  padding-block: 10px;
+}
+
+.nav-btn .nav-label {
+  font-size: 0.7rem;
+}
+
+.nav-btn.active-nav {
+  background: rgba(255,255,255,0.08);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18) inset;
+}
+
+/* Status bar refinement */
+.status-bar {
+  width: min(1280px, calc(100vw - 24px));
+  left: 50%;
+  transform: translateX(-50%);
+  top: calc(10px + var(--safe-top));
+  border: 1px solid rgba(255,255,255,0.08);
+  background:
+    linear-gradient(180deg, rgba(8, 14, 28, 0.82), rgba(8, 14, 28, 0.72)),
+    var(--surface-grad);
+}
+
+.status-indicator {
+  max-width: clamp(140px, 20vw, 320px);
+}
+
+.status-badge {
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.05);
+}
+
+/* Desktop floating action */
+.fab-container {
+  right: calc(18px + var(--safe-right));
+}
+
+.fab {
+  box-shadow: 0 14px 40px rgba(123, 47, 247, 0.42);
+}
+
+.modal-overlay {
+  padding-inline: clamp(12px, 2vw, 24px);
+}
+
+.modal-content {
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: var(--shadow-strong);
+  background:
+    linear-gradient(180deg, rgba(13, 21, 38, 0.98), rgba(10, 16, 30, 0.96)),
+    var(--surface-grad-strong);
+}
+
+.modal-body {
+  line-height: 1.7;
+}
+
+/* Desktop / tablet adaptive layouts */
+@media (min-width: 768px) {
+  .page {
+    padding:
+      calc(var(--status-h) + 28px + var(--safe-top))
+      calc(var(--shell-gutter) + var(--safe-right))
+      calc(var(--nav-h) + var(--nav-bottom) + 34px + var(--safe-bottom))
+      calc(var(--shell-gutter) + var(--safe-left));
+  }
+
+  .profile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-grid .card:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .quick-actions {
+    justify-content: flex-start;
+  }
+
+  .voice-command-bar {
+    justify-content: space-between;
+  }
+
+  .stats-grid {
+    gap: 14px;
+  }
+
+  .bottom-nav {
+    width: min(1120px, calc(100vw - 32px));
+  }
+
+  .modal-content {
+    max-width: 620px;
+  }
+}
+
+@media (min-width: 1024px) {
+  body.spatial-shell {
+    padding-left: var(--desktop-nav-w);
+  }
+
+  .app-container {
+    grid-template-columns: 1fr;
+  }
+
+  .status-bar {
+    width: calc(100vw - var(--desktop-nav-w) - 28px);
+    left: calc(var(--desktop-nav-w) + 14px);
+    transform: none;
+  }
+
+  .main-content {
+    padding-left: 0;
+  }
+
+  .bottom-nav {
+    width: var(--desktop-nav-w);
+    height: calc(100vh - 28px);
+    top: 14px;
+    bottom: 14px;
+    left: 14px;
+    transform: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 10px;
+    border-radius: 32px;
+  }
+
+  .nav-btn {
+    width: 100%;
+    flex: 0 0 auto;
+    padding: 12px 10px;
+    border-radius: 20px;
+  }
+
+  .nav-btn::after {
+    left: auto;
+    right: 10px;
+    bottom: 50%;
+    transform: translateY(50%) scaleY(0);
+    width: 4px;
+    height: 18px;
+  }
+
+  .nav-btn.active-nav::after {
+    transform: translateY(50%) scaleY(1);
+  }
+
+  .nav-icon {
+    font-size: 1.35rem;
+  }
+
+  .nav-label {
+    display: block;
+  }
+
+  .fab-container {
+    bottom: 24px;
+    right: 24px;
+  }
+
+  .voice-command-bar {
+    width: min(1180px, calc(100vw - var(--desktop-nav-w) - 56px));
+  }
+
+  .quick-actions {
+    width: min(1180px, calc(100vw - var(--desktop-nav-w) - 56px));
+  }
+
+  .page-header h2 {
+    font-size: 1.95rem;
+  }
+
+  .explore-container {
+    grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+    display: grid;
+    align-items: start;
+  }
+
+  .search-box {
+    grid-column: 1 / -1;
+  }
+
+  .map-container {
+    min-height: 520px;
+    height: calc(100vh - 280px);
+  }
+
+  .poi-list {
+    max-height: calc(100vh - 280px);
+    overflow: auto;
+    padding-right: 2px;
+  }
+
+  .profile-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .profile-grid .card {
+    grid-column: span 4;
+  }
+
+  .profile-grid .card:first-child {
+    grid-column: span 8;
+  }
+
+  .profile-grid .card:last-child {
+    grid-column: span 4;
+  }
+
+  .card h3 {
+    font-size: 1.02rem;
+  }
+
+  .stats-grid {
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1280px) {
+  body.spatial-shell {
+    padding-left: var(--desktop-nav-expanded-w);
+  }
+
+  .status-bar {
+    width: calc(100vw - var(--desktop-nav-expanded-w) - 32px);
+    left: calc(var(--desktop-nav-expanded-w) + 16px);
+  }
+
+  .bottom-nav {
+    width: var(--desktop-nav-expanded-w);
+    align-items: flex-start;
+    padding: 18px 16px;
+  }
+
+  .nav-btn {
+    justify-content: flex-start;
+    flex-direction: row;
+    gap: 12px;
+    padding-inline: 14px;
+  }
+
+  .nav-label {
+    font-size: 0.9rem;
+  }
+
+  .nav-btn::after {
+    right: 12px;
+  }
+
+  .voice-command-bar,
+  .quick-actions {
+    width: min(1320px, calc(100vw - var(--desktop-nav-expanded-w) - 56px));
+  }
+
+  .page {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  .page-header,
+  .explore-container,
+  .profile-grid,
+  .camera-container {
+    max-width: 1320px;
+  }
+
+  .profile-grid .card:first-child {
+    grid-column: span 7;
+  }
+
+  .profile-grid .card:nth-child(2) {
+    grid-column: span 3;
+  }
+
+  .profile-grid .card:nth-child(3) {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 1440px) {
+  .status-bar {
+    top: 16px;
+  }
+
+  .page {
+    padding-top: calc(var(--status-h) + 34px + var(--safe-top));
+  }
+
+  .quick-actions {
+    justify-content: flex-start;
+  }
+}
+
+/* Container queries for component-level responsiveness */
+@container (min-width: 520px) {
+  .stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 720px) {
+  .explore-container {
+    grid-template-columns: 1fr 360px;
+  }
+
+  .voice-command-bar {
+    gap: 16px;
+  }
+}
+
+@container (min-width: 900px) {
+  .profile-grid .card {
+    border-radius: 28px;
+  }
+}
+
+/* Content-visibility for faster initial render */
+.explore-container,
+.profile-grid,
+.templates-list,
+.poi-list,
+.stats-grid,
+.modal-body {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 260px;
+}
+
+/* High-end motion, but only on capable UAs */
+@media (prefers-reduced-motion: no-preference) {
+  .page.active {
+    animation: pageRise 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .card:hover,
+  .poi-item:hover,
+  .template-item:hover,
+  .stat:hover,
+  .quick-action-btn:hover,
+  .back-btn:hover,
+  .search-btn:hover,
+  .fab:hover {
+    transform: translateY(-1px);
+  }
+
+  .nav-btn.active-nav .nav-icon {
+    animation: iconFloat 800ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+}
+
+@keyframes pageRise {
+  from { opacity: 0; transform: translateY(16px) scale(0.992); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes iconFloat {
+  0% { transform: translateY(0) scale(1); }
+  60% { transform: translateY(-2px) scale(1.08); }
+  100% { transform: translateY(-2px) scale(1.08); }
+}
+
+/* Reduce GPU-heavy effects when needed */
+@media (prefers-reduced-motion: reduce) {
+  .page.active {
+    animation: none !important;
+  }
+
+  .page,
+  .card,
+  .modal-content,
+  .bottom-nav,
+  .status-bar,
+  .voice-command-bar,
+  .quick-action-btn,
+  .toast,
+  .search-input,
+  .map-container,
+  .detection-box,
+  .fab,
+  .nav-btn,
+  .back-btn {
+    box-shadow: none !important;
+  }
+
+  .camera-container::before,
+  .status-bar,
+  .bottom-nav,
+  .voice-command-bar,
+  .card,
+  .modal-content,
+  .quick-action-btn,
+  .toast,
+  .search-input {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+/* Reduced data mode */
+@media (prefers-reduced-data: reduce) {
+  #bg-canvas,
+  .camera-container::before,
+  .camera-container::after {
+    display: none !important;
+  }
+
+  .status-bar,
+  .bottom-nav,
+  .voice-command-bar,
+  .card,
+  .modal-content,
+  .search-input {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* Fallbacks for unsupported blur */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .status-bar,
+  .voice-command-bar,
+  .bottom-nav,
+  .card,
+  .modal-content,
+  .toast,
+  .search-input,
+  .quick-action-btn,
+  .map-container {
+    background: rgba(10, 18, 34, 0.94);
+  }
+}
+
+/* Print-safe fallback */
+@media print {
+  body.spatial-shell::before,
+  #bg-canvas,
+  #splash-screen,
+  .bottom-nav,
+  .fab-container,
+  .toast-container,
+  .modal-overlay,
+  .voice-command-bar,
+  .quick-actions,
+  .scan-reticle,
+  .compass-ring,
+  #overlay-canvas,
+  .camera-container::before,
+  .camera-container::after {
+    display: none !important;
+  }
+
+  .page {
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+  }
+}
+
