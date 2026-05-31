@@ -1,94 +1,132 @@
-// sensors.js
-import { state } from './state.js';
-import { compassRing, compassBadge, gpsBadge, batteryBadge, networkBadge, clockEl } from './dom.js';
-import { updateStatus } from './ui.js';
+/**
+ * sensor.js — Device sensor management.
+ *
+ * Handles:
+ *   • DeviceOrientation (compass / heading)
+ *   • Geolocation (GPS accuracy)
+ *   • Battery API
+ *   • Network status (online/offline)
+ *
+ * All sensor reads feed into state.js — UI reacts through subscriptions.
+ * Permission requests are deferred until a user gesture is available.
+ */
 
-export function updateClock() {
-  const now = new Date();
-  if (clockEl) clockEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+import { setState, getState } from './state.js';
+
+// ─── Network ─────────────────────────────────────────────────────────────────
+
+export function initNetwork() {
+  const update = () => setState({ isOnline: navigator.onLine });
+  window.addEventListener('online',  update, { passive: true });
+  window.addEventListener('offline', update, { passive: true });
+  update();
 }
-setInterval(updateClock, 1000);
-updateClock();
 
-export function updateNetworkStatus() {
-  if (networkBadge) {
-    networkBadge.textContent = state.isOnline ? '🌐' : '🚫';
-    networkBadge.className = `status-badge ${state.isOnline ? 'online' : ''}`;
-  }
-}
-window.addEventListener('online', () => { state.isOnline = true; updateNetworkStatus(); });
-window.addEventListener('offline', () => { state.isOnline = false; updateNetworkStatus(); });
-updateNetworkStatus();
+// ─── Battery ─────────────────────────────────────────────────────────────────
 
-export function updateBattery() {
-  if ('getBattery' in navigator) {
-    navigator.getBattery().then(battery => {
-      const level = Math.round(battery.level * 100);
-      if (batteryBadge) batteryBadge.textContent = `🔋 ${level}%`;
-      battery.addEventListener('levelchange', () => {
-        if (batteryBadge) batteryBadge.textContent = `🔋 ${Math.round(battery.level * 100)}%`;
-      });
+export async function initBattery() {
+  if (!('getBattery' in navigator)) return;
+
+  try {
+    const battery = await navigator.getBattery();
+
+    const sync = () => setState({
+      batteryLevel:    Math.round(battery.level * 100),
+      batteryCharging: battery.charging,
     });
-  } else if (batteryBadge) {
-    batteryBadge.textContent = '🔋 --';
+
+    battery.addEventListener('levelchange',   sync);
+    battery.addEventListener('chargingchange', sync);
+    sync();
+  } catch (err) {
+    console.warn('[sensor] Battery API failed:', err);
   }
 }
-updateBattery();
 
-export function updateGPS() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        if (gpsBadge) gpsBadge.textContent = `📍 ${pos.coords.accuracy.toFixed(0)}m`;
-      },
-      () => {
-        if (gpsBadge) gpsBadge.textContent = '📍 Off';
-      },
-      { enableHighAccuracy: false, timeout: 5000 }
-    );
-  } else if (gpsBadge) {
-    gpsBadge.textContent = '📍 N/A';
+// ─── GPS ─────────────────────────────────────────────────────────────────────
+
+let _gpsWatchId = null;
+
+export function initGPS() {
+  if (!navigator.geolocation) return;
+
+  const onSuccess = (pos) => setState({ gpsAccuracy: pos.coords.accuracy });
+  const onError   = ()    => setState({ gpsAccuracy: null });
+  const opts      = { enableHighAccuracy: false, timeout: 8000, maximumAge: 15000 };
+
+  // Initial single fix
+  navigator.geolocation.getCurrentPosition(onSuccess, onError, opts);
+
+  // Passive watch every ~15 s via maximumAge cache
+  _gpsWatchId = navigator.geolocation.watchPosition(onSuccess, onError, opts);
+}
+
+export function stopGPS() {
+  if (_gpsWatchId !== null) {
+    navigator.geolocation.clearWatch(_gpsWatchId);
+    _gpsWatchId = null;
   }
 }
-setInterval(updateGPS, 10000);
-updateGPS();
 
-export function initCompass() {
+// ─── Compass (DeviceOrientation) ─────────────────────────────────────────────
+
+let _compassInitialised = false;
+
+function _handleOrientation(e) {
+  // webkitCompassHeading is more accurate on iOS (true north, already corrected)
+  const heading = e.webkitCompassHeading != null
+    ? e.webkitCompassHeading
+    : (e.alpha != null ? (360 - e.alpha) % 360 : null);
+
+  if (heading !== null) setState({ heading });
+}
+
+/**
+ * Initialise compass. On iOS 13+ this must be called from a user gesture.
+ * @param {function=} onDenied  — called if permission rejected
+ */
+export async function initCompass(onDenied) {
+  if (_compassInitialised) return;
+
   if (!window.DeviceOrientationEvent) {
-    updateStatus('Compass unsupported', true);
+    console.warn('[sensor] DeviceOrientationEvent not supported');
     return;
   }
-  const handleOrientation = (e) => {
-    if (e.alpha !== null) {
-      state.currentHeading = e.alpha;
-      updateCompassUI();
-    }
-  };
+
+  // iOS 13+ requires explicit permission
   if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-    document.body.addEventListener('click', () => {
-      DeviceOrientationEvent.requestPermission()
-        .then(perm => {
-          if (perm === 'granted') window.addEventListener('deviceorientation', handleOrientation);
-          else updateStatus('Compass denied', true);
-        })
-        .catch(() => updateStatus('Compass error', true));
-    }, { once: true });
+    try {
+      const perm = await DeviceOrientationEvent.requestPermission();
+      if (perm === 'granted') {
+        window.addEventListener('deviceorientation', _handleOrientation, { passive: true });
+        _compassInitialised = true;
+      } else {
+        onDenied?.();
+      }
+    } catch (err) {
+      console.warn('[sensor] Compass permission error:', err);
+      onDenied?.();
+    }
   } else {
-    window.addEventListener('deviceorientation', handleOrientation);
+    // Android / desktop — no permission gate
+    window.addEventListener('deviceorientation', _handleOrientation, { passive: true });
+    _compassInitialised = true;
   }
 }
 
-export function updateCompassUI() {
-  if (compassBadge) {
-    compassBadge.textContent = `🧭 ${state.currentHeading !== null ? Math.round(state.currentHeading) + '°' : '--°'}`;
-  }
-  if (compassRing && !compassRing.classList.contains('hidden') && state.currentHeading !== null) {
-    compassRing.style.transform = `rotate(${state.compassTarget - state.currentHeading}deg)`;
-  }
-}
-
+/**
+ * Set the compass target bearing (0–359 °).
+ * The UI module reads state.compassTarget for the ring arrow.
+ * @param {number} deg
+ */
 export function setCompassTarget(deg) {
-  state.compassTarget = deg;
-  if (compassRing) compassRing.classList.remove('hidden');
-  updateCompassUI();
+  setState({ compassTarget: ((deg % 360) + 360) % 360, compassVisible: true });
+}
+
+export function showCompass() {
+  setState({ compassVisible: true });
+}
+
+export function hideCompass() {
+  setState({ compassVisible: false });
 }

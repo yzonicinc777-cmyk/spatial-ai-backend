@@ -1,261 +1,364 @@
-// camera.js
-import { state } from './state.js';
-import {
-  video, overlayCanvas, overlayCtx, detectionBox, detectionLabel, detectionDistance,
-  detectionBuyBtn
-} from './dom.js';
-import {
-  updateStatus, showToast, updateStats, exitTemplateMode, navigateTo
-} from './ui.js';
-import { saveTemplateToDB } from './store.js';
+/**
+ * camera.js — Camera, overlay canvas, flashlight, and frame-capture pipeline.
+ *
+ * Responsibilities:
+ *   • Request camera permission and open the video stream
+ *   • Size / resize the overlay canvas to match video intrinsics
+ *   • Provide a zero-copy frame-capture loop that feeds the detection worker
+ *   • Render match bounding boxes + compass arrow on the overlay canvas
+ *   • Toggle the torch (flashlight)
+ *
+ * NOTE: camera.js does NOT import detection.js to avoid circular deps.
+ * Instead it exposes sendFrameToWorker as a callback set by detection.js.
+ *
+ * Security: no eval; canvas only reads local MediaStream frames.
+ */
 
-export function initDetectionWorker() {
-  state.detectionWorker = new Worker('detection.worker.js', { type: 'module' });
-  state.detectionWorker.onmessage = (e) => {
-    const { type, matches, error } = e.data;
-    if (type === 'ready') {
-      state.workerReady = true;
-      updateStatus('AI engine ready');
-      showToast('AI Lens active', 'success');
-    } else if (type === 'result') {
-      if (matches && matches.length) drawMatches(matches);
-      else hideDetectionBox();
-    } else if (type === 'error') {
-      console.error(error);
-      updateStatus('Detection error', true);
-    } else if (type === 'template_set') {
-      exitTemplateMode();
-      showToast('Template captured', 'success');
-    } else if (type === 'template_cleared') {
-      showToast('Template cleared', 'info');
-    }
-  };
-  state.detectionWorker.postMessage({ type: 'init' });
+import { refs }                          from './dom.js';
+import { setState, getState, subscribe } from './state.js';
+import { showToast, updateStatus }       from './ui.js';
+
+// ─── Constants ───────────────────────────────────────────────────────────────
+
+const FRAME_SKIP   = 3;   // process every Nth frame
+const RETICLE_SIZE = 50;  // px² template capture region
+
+// ─── Private refs ────────────────────────────────────────────────────────────
+
+let _video         = null;
+let _overlayCanvas = null;
+let _overlayCtx    = null;
+let _captureCanvas = null;
+let _captureCtx    = null;
+let _frameCount    = 0;
+let _stream        = null;
+let _raf           = null;
+
+/** Injected by detection.js — avoids circular import */
+let _onFrameReady  = null;
+
+// Resolution presets
+const RES_MAP = {
+  '1080p': { width: 1920, height: 1080 },
+  '720p':  { width: 1280, height: 720  },
+  '480p':  { width: 854,  height: 480  },
+};
+
+// ─── Injection point ─────────────────────────────────────────────────────────
+
+/**
+ * Called by detection.js after worker is up.
+ * @param {function(ImageData, number, number): void} cb
+ */
+export function setFrameCallback(cb) {
+  _onFrameReady = cb;
 }
 
+// ─── Camera init ─────────────────────────────────────────────────────────────
+
+/**
+ * Open the rear camera and wire the video element.
+ * @returns {Promise<void>}
+ */
+export async function initCamera() {
+  _video         = refs('video');
+  _overlayCanvas = refs('overlayCanvas');
+
+  if (!_video || !_overlayCanvas) {
+    console.error('[camera] Missing video or overlay canvas elements');
+    return;
+  }
+
+  _overlayCtx = _overlayCanvas.getContext('2d');
+
+  const res         = getState('cameraRes');
+  const constraints = RES_MAP[res] || RES_MAP['720p'];
+
+  try {
+    _stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode:  'environment',
+        width:  { ideal: constraints.width  },
+        height: { ideal: constraints.height },
+      },
+      audio: false,
+    });
+
+    _video.srcObject = _stream;
+    await _video.play();
+
+    _initCaptureCanvas();
+    _bindResizeObserver();
+    setState({ cameraActive: true });
+    updateStatus('Camera ready');
+    showToast('Camera active', 'success');
+    _startFrameLoop();
+
+  } catch (err) {
+    const msg = err.name === 'NotAllowedError'
+      ? 'Camera permission denied'
+      : `Camera error: ${err.message}`;
+    updateStatus(msg, 'error');
+    showToast(msg, 'error');
+    console.error('[camera]', err);
+  }
+}
+
+export function stopCamera() {
+  if (_raf) { cancelAnimationFrame(_raf); _raf = null; }
+  if (_stream) {
+    _stream.getTracks().forEach(t => t.stop());
+    _stream = null;
+  }
+  setState({ cameraActive: false, torchOn: false });
+}
+
+// ─── Canvas setup ────────────────────────────────────────────────────────────
+
+function _initCaptureCanvas() {
+  if (_captureCanvas) return;
+  _captureCanvas = document.createElement('canvas');
+  _captureCtx    = _captureCanvas.getContext('2d', { willReadFrequently: true });
+}
+
+function _syncCanvasSizes() {
+  if (!_video || !_video.videoWidth) return;
+  const w = _video.videoWidth;
+  const h = _video.videoHeight;
+
+  if (_overlayCanvas.width !== w || _overlayCanvas.height !== h) {
+    _overlayCanvas.width  = w;
+    _overlayCanvas.height = h;
+  }
+  if (_captureCanvas && (_captureCanvas.width !== w || _captureCanvas.height !== h)) {
+    _captureCanvas.width  = w;
+    _captureCanvas.height = h;
+  }
+}
+
+function _bindResizeObserver() {
+  _video.addEventListener('loadedmetadata', _syncCanvasSizes);
+
+  if (window.ResizeObserver) {
+    new ResizeObserver(_syncCanvasSizes).observe(_video);
+  } else {
+    window.addEventListener('resize', _syncCanvasSizes, { passive: true });
+  }
+
+  _syncCanvasSizes();
+}
+
+// ─── Frame-capture loop ──────────────────────────────────────────────────────
+
+function _startFrameLoop() {
+  const tick = () => {
+    _raf = requestAnimationFrame(tick);
+
+    if (++_frameCount % FRAME_SKIP !== 0) return;
+    if (!_video || _video.readyState < 2) return;
+    if (!getState('workerReady') || !_onFrameReady) return;
+
+    _syncCanvasSizes();
+
+    const w = _captureCanvas.width;
+    const h = _captureCanvas.height;
+    if (!w || !h) return;
+
+    _captureCtx.drawImage(_video, 0, 0, w, h);
+
+    const imageData = _captureCtx.getImageData(0, 0, w, h);
+    _onFrameReady(imageData, w, h);  // transfers ownership
+  };
+
+  _raf = requestAnimationFrame(tick);
+}
+
+// ─── Template capture ────────────────────────────────────────────────────────
+
+/**
+ * Capture a RETICLE_SIZE² region around (x, y) in video-space.
+ * @param {number} x
+ * @param {number} y
+ * @returns {ImageData|null}
+ */
+export function captureRegion(x, y) {
+  if (!_video || _video.readyState < 2 || !_captureCtx) return null;
+
+  _syncCanvasSizes();
+
+  const w = _captureCanvas.width;
+  const h = _captureCanvas.height;
+  _captureCtx.drawImage(_video, 0, 0, w, h);
+
+  const cx = Math.max(0, Math.min(Math.round(x), w - RETICLE_SIZE));
+  const cy = Math.max(0, Math.min(Math.round(y), h - RETICLE_SIZE));
+
+  return _captureCtx.getImageData(cx, cy, RETICLE_SIZE, RETICLE_SIZE);
+}
+
+/**
+ * Capture at centre of video frame.
+ * @returns {ImageData|null}
+ */
+export function captureCentre() {
+  if (!_video) return null;
+  return captureRegion(_video.videoWidth / 2, _video.videoHeight / 2);
+}
+
+/** Convert pointer event on the video element to video-space coordinates. */
+export function eventToVideoCoords(e) {
+  if (!_video) return { x: 0, y: 0 };
+  const rect   = _video.getBoundingClientRect();
+  const scaleX = _video.videoWidth  / rect.width;
+  const scaleY = _video.videoHeight / rect.height;
+  const client = e.touches ? e.touches[0] : e;
+  return {
+    x: (client.clientX - rect.left) * scaleX,
+    y: (client.clientY - rect.top)  * scaleY,
+  };
+}
+
+// ─── Overlay rendering ───────────────────────────────────────────────────────
+
+/**
+ * Draw detection match boxes + compass arrow on the overlay canvas.
+ * @param {Array<{x,y,width,height,confidence,scale}>} matches
+ */
 export function drawMatches(matches) {
-  if (!overlayCtx) return;
-  const w = overlayCanvas.width, h = overlayCanvas.height;
-  overlayCtx.clearRect(0, 0, w, h);
+  if (!_overlayCtx || !_overlayCanvas) return;
+
+  const { width: w, height: h } = _overlayCanvas;
+  _overlayCtx.clearRect(0, 0, w, h);
+
   for (let i = 0; i < matches.length; i++) {
     const m = matches[i];
-    overlayCtx.strokeStyle = i === 0 ? '#4ecdc4' : '#ffb347';
-    overlayCtx.lineWidth = i === 0 ? 3 : 2;
-    overlayCtx.strokeRect(m.x, m.y, m.width, m.height);
-    overlayCtx.fillStyle = 'white';
-    overlayCtx.font = '12px Inter';
-    overlayCtx.fillText(`${Math.round(m.confidence * 100)}%`, m.x + 4, m.y - 6);
-    if (i === 0) updateDetectionBoxUI(m, w, h);
+
+    _overlayCtx.save();
+    _overlayCtx.strokeStyle = i === 0 ? '#4ecdc4' : '#ffb347';
+    _overlayCtx.lineWidth   = i === 0 ? 3 : 2;
+    _overlayCtx.shadowBlur  = i === 0 ? 14 : 6;
+    _overlayCtx.shadowColor = i === 0 ? '#4ecdc4' : '#ffb347';
+    _overlayCtx.strokeRect(m.x, m.y, m.width, m.height);
+    _overlayCtx.restore();
+
+    // Confidence label badge
+    const pct   = `${Math.round(m.confidence * 100)}%`;
+    const badgeW = _overlayCtx.measureText(pct).width + 12;
+    _overlayCtx.fillStyle = 'rgba(0,0,0,0.6)';
+    _overlayCtx.beginPath();
+    _overlayCtx.roundRect?.(m.x, m.y - 20, badgeW, 18, 4)
+      || _overlayCtx.fillRect(m.x, m.y - 20, badgeW, 18);
+    _overlayCtx.fill();
+    _overlayCtx.fillStyle = i === 0 ? '#4ecdc4' : '#ffb347';
+    _overlayCtx.font      = '600 11px system-ui,sans-serif';
+    _overlayCtx.fillText(pct, m.x + 6, m.y - 6);
   }
-  if (matches.length === 0) hideDetectionBox();
+
+  // Compass arrow overlay
+  const { compassVisible, heading, compassTarget } = getState();
+  if (compassVisible && heading !== null) {
+    _drawCompassArrow(w, h, heading, compassTarget);
+  }
 }
 
-export function updateDetectionBoxUI(match, canvasWidth, canvasHeight) {
-  if (!detectionBox) return;
-  const videoRect = video.getBoundingClientRect();
-  const scaleX = videoRect.width / canvasWidth;
-  const scaleY = videoRect.height / canvasHeight;
-  detectionBox.classList.remove('hidden');
-  detectionBox.style.left = match.x * scaleX + 'px';
-  detectionBox.style.top = match.y * scaleY + 'px';
-  detectionBox.style.width = match.width * scaleX + 'px';
-  detectionBox.style.height = match.height * scaleY + 'px';
-  if (detectionLabel) detectionLabel.textContent = `${Math.round(match.confidence * 100)}% match`;
-  if (detectionDistance) detectionDistance.textContent = match.scale !== 1.0 ? `scale ${match.scale.toFixed(1)}×` : '~1.5m';
-  state.lastDetection = match;
+export function clearOverlay() {
+  if (!_overlayCtx || !_overlayCanvas) return;
+  _overlayCtx.clearRect(0, 0, _overlayCanvas.width, _overlayCanvas.height);
+}
+
+function _drawCompassArrow(cW, cH, heading, target) {
+  const cx  = cW - 72;
+  const cy  = cH - 72;
+  const rad = ((target - heading) * Math.PI) / 180;
+  const len = 42;
+  const ex  = cx + Math.sin(rad) * len;
+  const ey  = cy - Math.cos(rad) * len;
+
+  _overlayCtx.save();
+  _overlayCtx.strokeStyle = '#ffb347';
+  _overlayCtx.lineWidth   = 3.5;
+  _overlayCtx.shadowBlur  = 10;
+  _overlayCtx.shadowColor = '#ffb347';
+  _overlayCtx.lineCap     = 'round';
+
+  _overlayCtx.beginPath();
+  _overlayCtx.moveTo(cx, cy);
+  _overlayCtx.lineTo(ex, ey);
+  _overlayCtx.stroke();
+
+  const a  = Math.atan2(ey - cy, ex - cx);
+  const hl = 11;
+  _overlayCtx.fillStyle = '#ffb347';
+  _overlayCtx.beginPath();
+  _overlayCtx.moveTo(ex, ey);
+  _overlayCtx.lineTo(ex - hl * Math.cos(a - Math.PI / 6), ey - hl * Math.sin(a - Math.PI / 6));
+  _overlayCtx.lineTo(ex - hl * Math.cos(a + Math.PI / 6), ey - hl * Math.sin(a + Math.PI / 6));
+  _overlayCtx.closePath();
+  _overlayCtx.fill();
+  _overlayCtx.restore();
+}
+
+// ─── Detection box DOM positioning ──────────────────────────────────────────
+
+/**
+ * Move the AR detection box element to sit over the best match.
+ * @param {{x,y,width,height,confidence,scale}} match
+ */
+export function positionDetectionBox(match) {
+  const box  = refs('detectionBox');
+  const lbl  = refs('detectionLabel');
+  const dist = refs('detectionDistance');
+  if (!box || !_video || !_overlayCanvas) return;
+
+  const videoRect = _video.getBoundingClientRect();
+  const scaleX    = videoRect.width  / _overlayCanvas.width;
+  const scaleY    = videoRect.height / _overlayCanvas.height;
+
+  box.style.left   = `${match.x * scaleX}px`;
+  box.style.top    = `${match.y * scaleY}px`;
+  box.style.width  = `${match.width  * scaleX}px`;
+  box.style.height = `${match.height * scaleY}px`;
+  box.classList.remove('hidden');
+
+  if (lbl)  lbl.textContent  = `${Math.round(match.confidence * 100)}% match`;
+  if (dist) dist.textContent = match.scale !== 1.0 ? `${match.scale.toFixed(1)}× scale` : '~1.5 m';
+
+  setState({ lastDetection: match });
 }
 
 export function hideDetectionBox() {
-  if (detectionBox && !detectionBox.classList.contains('hidden')) detectionBox.classList.add('hidden');
-  state.lastDetection = null;
+  refs('detectionBox')?.classList.add('hidden');
+  setState({ lastDetection: null });
 }
 
-export async function captureTemplateAt(x, y) {
-  if (!video || video.readyState < 2) return;
-  if (!state.captureCanvas || !state.captureCtx) return;
-
-  const w = video.videoWidth, h = video.videoHeight;
-  if (state.captureCanvas.width !== w || state.captureCanvas.height !== h) {
-    state.captureCanvas.width = w;
-    state.captureCanvas.height = h;
-  }
-  state.captureCtx.drawImage(video, 0, 0, w, h);
-
-  x = Math.max(0, Math.min(x, w - 50));
-  y = Math.max(0, Math.min(y, h - 50));
-  const imgData = state.captureCtx.getImageData(x, y, 50, 50);
-  state.detectionWorker.postMessage({
-    type: 'set_template',
-    payload: { data: imgData.data, width: 50, height: 50 }
-  });
-  state.templateCount++;
-  updateStats();
-  saveTemplateToDB(`capture_${Date.now()}`, imgData.data.buffer);
-}
-
-export function autoCaptureTemplate() {
-  if (!video) return;
-  captureTemplateAt(video.videoWidth / 2, video.videoHeight / 2);
-}
-
-export function clearTemplate() {
-  if (state.detectionWorker) {
-    state.detectionWorker.postMessage({ type: 'clear_template' });
-    updateStatus('Template cleared');
-    exitTemplateMode();
-    showToast('Template cleared', 'info');
-  }
-}
-
-export function startFrameCapture() {
-  if (!state.captureCanvas) {
-    state.captureCanvas = document.createElement('canvas');
-    state.captureCtx = state.captureCanvas.getContext('2d', { willReadFrequently: true });
-  }
-
-  let lastW = 0, lastH = 0;
-
-  const processFrame = () => {
-    if (!state.workerReady || !video.videoWidth) {
-      requestAnimationFrame(processFrame);
-      return;
-    }
-    if (state.frameSkip++ % state.FRAME_SKIP === 0) {
-      const w = video.videoWidth, h = video.videoHeight;
-      if (w !== lastW || h !== lastH) {
-        state.captureCanvas.width = w;
-        state.captureCanvas.height = h;
-        lastW = w; lastH = h;
-      }
-      state.captureCtx.drawImage(video, 0, 0);
-      const imageData = state.captureCtx.getImageData(0, 0, w, h);
-      state.detectionWorker.postMessage(
-        { type: 'detect', payload: { imageData: imageData.data, width: w, height: h } },
-        [imageData.data.buffer]
-      );
-    }
-    requestAnimationFrame(processFrame);
-  };
-  requestAnimationFrame(processFrame);
-}
-
-export async function initCamera() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
-      audio: false
-    });
-    video.srcObject = stream;
-    await video.play();
-
-    if (!state.captureCanvas) {
-      state.captureCanvas = document.createElement('canvas');
-      state.captureCtx = state.captureCanvas.getContext('2d');
-    }
-
-    const resizeCanvas = () => {
-      if (video.videoWidth) {
-        overlayCanvas.width = video.videoWidth;
-        overlayCanvas.height = video.videoHeight;
-        if (state.captureCanvas) {
-          state.captureCanvas.width = video.videoWidth;
-          state.captureCanvas.height = video.videoHeight;
-        }
-      }
-    };
-    video.addEventListener('loadedmetadata', resizeCanvas);
-    window.addEventListener('resize', resizeCanvas);
-    setTimeout(resizeCanvas, 150);
-
-    updateStatus('Camera ready');
-    showToast('Camera active');
-
-    initDetectionWorker();
-    startFrameCapture();
-
-    setInterval(aiDetectFrame, 2000);
-  } catch (err) {
-    updateStatus(`Camera denied: ${err.message}`, true);
-    showToast('Camera permission required', 'error');
-  }
-}
-
-export function drawCompassArrow(canvasWidth, canvasHeight) {
-  if (!overlayCtx) return;
-  const cx = canvasWidth - 70, cy = canvasHeight - 70;
-  const angleRad = ((state.compassTarget - state.currentHeading) * Math.PI) / 180;
-  const len = 45;
-  const ex = cx + Math.sin(angleRad) * len;
-  const ey = cy - Math.cos(angleRad) * len;
-
-  overlayCtx.save();
-  overlayCtx.beginPath();
-  overlayCtx.moveTo(cx, cy);
-  overlayCtx.lineTo(ex, ey);
-  overlayCtx.strokeStyle = '#ffb347';
-  overlayCtx.lineWidth = 4;
-  overlayCtx.shadowBlur = 8;
-  overlayCtx.shadowColor = '#ffb347';
-  overlayCtx.stroke();
-  const a = Math.atan2(ey - cy, ex - cx);
-  const hl = 12;
-  const lx = ex - hl * Math.cos(a - Math.PI / 6);
-  const ly = ey - hl * Math.sin(a - Math.PI / 6);
-  const rx = ex - hl * Math.cos(a + Math.PI / 6);
-  const ry = ey - hl * Math.sin(a + Math.PI / 6);
-  overlayCtx.beginPath();
-  overlayCtx.moveTo(ex, ey);
-  overlayCtx.lineTo(lx, ly);
-  overlayCtx.lineTo(rx, ry);
-  overlayCtx.fillStyle = '#ffb347';
-  overlayCtx.fill();
-  overlayCtx.restore();
-}
-
-export function doScan() {
-  autoCaptureTemplate();
-  showToast('Scanning...');
-}
+// ─── Flashlight ──────────────────────────────────────────────────────────────
 
 export async function toggleFlashlight() {
-  if (!video || !video.srcObject) return;
-  const stream = video.srcObject;
-  const track = stream.getVideoTracks()[0];
-  if (!track) return;
+  if (!_stream) { showToast('Camera not active', 'error'); return; }
+
+  const track = _stream.getVideoTracks()[0];
+  if (!track)  { showToast('No video track', 'error'); return; }
+
   try {
-    if (state.flashlightTrack) {
-      await track.applyConstraints({ advanced: [{ torch: false }] });
-      state.flashlightTrack = null;
-      showToast('Flashlight off');
-    } else {
-      await track.applyConstraints({ advanced: [{ torch: true }] });
-      state.flashlightTrack = track;
-      showToast('Flashlight on');
-    }
-  } catch (err) {
-    showToast('Flashlight not supported', 'error');
+    const torchOn = !getState('torchOn');
+    await track.applyConstraints({ advanced: [{ torch: torchOn }] });
+    setState({ torchOn });
+    showToast(torchOn ? '💡 Flashlight on' : 'Flashlight off');
+  } catch {
+    showToast('Flashlight not supported on this device', 'error');
   }
 }
 
-async function aiDetectFrame() {
-  if (!state.captureCanvas) return;
-  state.captureCanvas.toBlob(async (blob) => {
-    const fd = new FormData();
-    fd.append('file', blob, 'frame.jpg');
-    try {
-      const res = await fetch('https://spatial-ai-backend-production.up.railway.app/api/detect', {
-        method: 'POST', body: fd
-      });
-      const { detections } = await res.json();
-      if (detections.length) {
-        drawMatches(detections.map(d => ({
-          x: d.x, y: d.y,
-          width: d.width, height: d.height,
-          confidence: d.confidence,
-          scale: 1.0,
-          label: d.label
-        })));
-      }
-    } catch (e) { /* server offline, fall back to WASM */ }
-  }, 'image/jpeg', 0.7);
+// ─── Compass ring DOM binding ─────────────────────────────────────────────────
+
+export function bindCompassRing() {
+  subscribe(['heading', 'compassTarget', 'compassVisible'], () => {
+    const ring = refs('compassRing');
+    if (!ring) return;
+    const { heading, compassTarget, compassVisible } = getState();
+    ring.classList.toggle('hidden', !compassVisible);
+    if (compassVisible && heading !== null) {
+      ring.style.transform = `rotate(${compassTarget - heading}deg)`;
+    }
+  });
 }

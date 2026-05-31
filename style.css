@@ -1851,3 +1851,167 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.3); }
   #app { position: static; height: auto; overflow: visible; }
   .page { position: static; transform: none; opacity: 1; visibility: visible; }
 }
+/* ─────────────────────────────────────────
+   UPGRADE ADDITIONS — SPATIAL AI v2
+   Modular architecture styles
+───────────────────────────────────────── */
+
+/* ── Template item in profile list ── */
+.template-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--glass);
+  border: 0.5px solid var(--glass-border);
+  border-radius: var(--r-sm);
+  margin-bottom: var(--sp-2);
+  transition: background var(--dur-fast), border-color var(--dur-fast);
+}
+
+.template-item:hover {
+  background: var(--glass-strong);
+  border-color: rgba(0,212,255,0.2);
+}
+
+.template-icon { font-size: 1rem; flex-shrink: 0; }
+
+.template-name {
+  flex: 1;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.template-date {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* ── Affiliate / buy button in modal ── */
+.affiliate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  background: var(--grad-brand);
+  color: white;
+  padding: 12px var(--sp-5);
+  border-radius: var(--r-pill);
+  font-size: 0.9rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  margin-top: var(--sp-4);
+  box-shadow: var(--glow-cyan);
+  transition: transform var(--dur-fast) var(--ease-bounce),
+              box-shadow var(--dur-fast);
+  letter-spacing: 0.3px;
+}
+
+.affiliate-btn:hover  { box-shadow: 0 0 32px rgba(0,212,255,0.55); transform: scale(1.03); }
+.affiliate-btn:active { transform: scale(0.94); }
+
+/* ── Scan reticle corner brackets ── */
+/* (Two extra corners using child divs so we get all 4) */
+.scan-reticle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 180px;
+  height: 180px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.scan-reticle::before,
+.scan-reticle::after {
+  content: '';
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border-color: rgba(0,212,255,0.8);
+  border-style: solid;
+  border-width: 0;
+  transition: border-color var(--dur-mid);
+}
+
+.scan-reticle::before {
+  top: 0; left: 0;
+  border-top-width: 2.5px;
+  border-left-width: 2.5px;
+  border-radius: var(--r-xs) 0 0 0;
+}
+
+.scan-reticle::after {
+  bottom: 0; right: 0;
+  border-bottom-width: 2.5px;
+  border-right-width: 2.5px;
+  border-radius: 0 0 var(--r-xs) 0;
+}
+
+/* ── Additional reticle corners via CSS clip trick ── */
+.scan-reticle-tr,
+.scan-reticle-bl {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border-color: rgba(0,212,255,0.8);
+  border-style: solid;
+  border-width: 0;
+}
+
+/* Template mode: reticle brightens */
+body.template-mode .scan-reticle::before,
+body.template-mode .scan-reticle::after {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 8px var(--accent-cyan);
+}
+
+/* ── Scan animation pulse on active FAB ── */
+.fab:active .fab-inner {
+  transform: scale(0.8) rotate(20deg);
+}
+
+/* ── Settings card improvement ── */
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-3) 0;
+  border-bottom: 0.5px solid var(--glass-border);
+  gap: var(--sp-4);
+}
+
+.setting-item:last-child { border-bottom: none; }
+
+.setting-item label:first-child {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* ── Page-exit animation fix ── */
+.page.page-exit {
+  transform: translateX(-28%) scale(0.96);
+  opacity: 0;
+  visibility: visible;     /* keep visible during exit transition */
+  pointer-events: none;
+}
+
+/* ── Modal visible state ── */
+.modal-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* ── text-muted utility ── */
+.text-muted {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
