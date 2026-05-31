@@ -1,43 +1,12 @@
 /* @ts-self-types="./spatial_explorer_core.d.ts" */
 
 /**
- * Clear the currently stored template.
+ * @param {string} json
  */
-export function clear_template() {
-    wasm.clear_template();
-}
-
-/**
- * Compute the integral image of the red channel (for debugging).
- * @param {Uint8Array} data
- * @param {number} img_w
- * @param {number} img_h
- * @returns {Uint32Array}
- */
-export function compute_integral(data, img_w, img_h) {
+export function configure(json) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_export2);
-        const len0 = WASM_VECTOR_LEN;
-        wasm.compute_integral(retptr, ptr0, len0, img_w, img_h);
-        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-        var v2 = getArrayU32FromWasm0(r0, r1).slice();
-        wasm.__wbindgen_export(r0, r1 * 4, 4);
-        return v2;
-    } finally {
-        wasm.__wbindgen_add_to_stack_pointer(16);
-    }
-}
-
-/**
- * Set detection parameters from JavaScript (JSON string).
- * @param {string} json_config
- */
-export function configure(json_config) {
-    try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        const ptr0 = passStringToWasm0(json_config, wasm.__wbindgen_export2, wasm.__wbindgen_export3);
+        const ptr0 = passStringToWasm0(json, wasm.__wbindgen_export2, wasm.__wbindgen_export3);
         const len0 = WASM_VECTOR_LEN;
         wasm.configure(retptr, ptr0, len0);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
@@ -51,33 +20,6 @@ export function configure(json_config) {
 }
 
 /**
- * Legacy single‑result detection (returns `"x,y,w,h"` string).
- * @param {Uint8Array} data
- * @param {number} img_w
- * @param {number} img_h
- * @returns {string}
- */
-export function detect_single(data, img_w, img_h) {
-    let deferred2_0;
-    let deferred2_1;
-    try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_export2);
-        const len0 = WASM_VECTOR_LEN;
-        wasm.detect_single(retptr, ptr0, len0, img_w, img_h);
-        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-        deferred2_0 = r0;
-        deferred2_1 = r1;
-        return getStringFromWasm0(r0, r1);
-    } finally {
-        wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_export(deferred2_0, deferred2_1, 1);
-    }
-}
-
-/**
- * Primary detection entry point. Returns JSON array of matches.
  * @param {Uint8Array} data
  * @param {number} img_w
  * @param {number} img_h
@@ -102,94 +44,11 @@ export function detect_template(data, img_w, img_h) {
     }
 }
 
-/**
- * Get the current configuration as a JSON string.
- * @returns {string}
- */
-export function get_config() {
-    let deferred1_0;
-    let deferred1_1;
-    try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.get_config(retptr);
-        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-        deferred1_0 = r0;
-        deferred1_1 = r1;
-        return getStringFromWasm0(r0, r1);
-    } finally {
-        wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_export(deferred1_0, deferred1_1, 1);
-    }
-}
-
-/**
- * Get template dimensions (JSON: `{"width":N,"height":N}` or `null`).
- * @returns {string}
- */
-export function get_template_info() {
-    let deferred1_0;
-    let deferred1_1;
-    try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.get_template_info(retptr);
-        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-        deferred1_0 = r0;
-        deferred1_1 = r1;
-        return getStringFromWasm0(r0, r1);
-    } finally {
-        wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_export(deferred1_0, deferred1_1, 1);
-    }
-}
-
-/**
- * Greet – used for smoke‑testing the WASM bridge.
- * @param {string} name
- * @returns {string}
- */
-export function greet(name) {
-    let deferred2_0;
-    let deferred2_1;
-    try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        const ptr0 = passStringToWasm0(name, wasm.__wbindgen_export2, wasm.__wbindgen_export3);
-        const len0 = WASM_VECTOR_LEN;
-        wasm.greet(retptr, ptr0, len0);
-        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-        deferred2_0 = r0;
-        deferred2_1 = r1;
-        return getStringFromWasm0(r0, r1);
-    } finally {
-        wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_export(deferred2_0, deferred2_1, 1);
-    }
-}
-
-/**
- * Check whether a template has been set.
- * @returns {boolean}
- */
-export function has_template() {
-    const ret = wasm.has_template();
-    return ret !== 0;
-}
-
 export function main() {
     wasm.main();
 }
 
 /**
- * Reset configuration to defaults.
- */
-export function reset_config() {
-    wasm.reset_config();
-}
-
-/**
- * Store a template from raw RGBA pixel data.
  * @param {Uint8Array} data
  * @param {number} width
  * @param {number} height
@@ -199,33 +58,9 @@ export function set_template(data, width, height) {
     const len0 = WASM_VECTOR_LEN;
     wasm.set_template(ptr0, len0, width, height);
 }
-
-/**
- * Get the WASM module version.
- * @returns {string}
- */
-export function version() {
-    let deferred1_0;
-    let deferred1_1;
-    try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.version(retptr);
-        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-        deferred1_0 = r0;
-        deferred1_1 = r1;
-        return getStringFromWasm0(r0, r1);
-    } finally {
-        wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_export(deferred1_0, deferred1_1, 1);
-    }
-}
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,
-        __wbg___wbindgen_throw_1506f2235d1bdba0: function(arg0, arg1) {
-            throw new Error(getStringFromWasm0(arg0, arg1));
-        },
         __wbg_error_a6fa202b58aa1cd3: function(arg0, arg1) {
             let deferred0_0;
             let deferred0_1;
@@ -236,9 +71,6 @@ function __wbg_get_imports() {
             } finally {
                 wasm.__wbindgen_export(deferred0_0, deferred0_1, 1);
             }
-        },
-        __wbg_log_cf2e968649f3384e: function(arg0) {
-            console.log(getObject(arg0));
         },
         __wbg_new_227d7c05414eb861: function() {
             const ret = new Error();
@@ -281,11 +113,6 @@ function dropObject(idx) {
     heap_next = idx;
 }
 
-function getArrayU32FromWasm0(ptr, len) {
-    ptr = ptr >>> 0;
-    return getUint32ArrayMemory0().subarray(ptr / 4, ptr / 4 + len);
-}
-
 let cachedDataViewMemory0 = null;
 function getDataViewMemory0() {
     if (cachedDataViewMemory0 === null || cachedDataViewMemory0.buffer.detached === true || (cachedDataViewMemory0.buffer.detached === undefined && cachedDataViewMemory0.buffer !== wasm.memory.buffer)) {
@@ -296,14 +123,6 @@ function getDataViewMemory0() {
 
 function getStringFromWasm0(ptr, len) {
     return decodeText(ptr >>> 0, len);
-}
-
-let cachedUint32ArrayMemory0 = null;
-function getUint32ArrayMemory0() {
-    if (cachedUint32ArrayMemory0 === null || cachedUint32ArrayMemory0.byteLength === 0) {
-        cachedUint32ArrayMemory0 = new Uint32Array(wasm.memory.buffer);
-    }
-    return cachedUint32ArrayMemory0;
 }
 
 let cachedUint8ArrayMemory0 = null;
@@ -406,7 +225,6 @@ function __wbg_finalize_init(instance, module) {
     wasm = instance.exports;
     wasmModule = module;
     cachedDataViewMemory0 = null;
-    cachedUint32ArrayMemory0 = null;
     cachedUint8ArrayMemory0 = null;
     wasm.__wbindgen_start();
     return wasm;

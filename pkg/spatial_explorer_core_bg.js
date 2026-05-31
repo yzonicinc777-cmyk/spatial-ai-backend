@@ -1,12 +1,8 @@
-/**
- * Clear the currently stored template.
- */
 export function clear_template() {
     wasm.clear_template();
 }
 
 /**
- * Compute the integral image of the red channel (for debugging).
  * @param {Uint8Array} data
  * @param {number} img_w
  * @param {number} img_h
@@ -29,7 +25,6 @@ export function compute_integral(data, img_w, img_h) {
 }
 
 /**
- * Set detection parameters from JavaScript (JSON string).
  * @param {string} json_config
  */
 export function configure(json_config) {
@@ -49,7 +44,7 @@ export function configure(json_config) {
 }
 
 /**
- * Legacy single‑result detection (returns `"x,y,w,h"` string).
+ * Legacy single‑result detection (returns `"x,y,w,h"`)
  * @param {Uint8Array} data
  * @param {number} img_w
  * @param {number} img_h
@@ -75,7 +70,6 @@ export function detect_single(data, img_w, img_h) {
 }
 
 /**
- * Primary detection entry point. Returns JSON array of matches.
  * @param {Uint8Array} data
  * @param {number} img_w
  * @param {number} img_h
@@ -101,7 +95,6 @@ export function detect_template(data, img_w, img_h) {
 }
 
 /**
- * Get the current configuration as a JSON string.
  * @returns {string}
  */
 export function get_config() {
@@ -122,7 +115,6 @@ export function get_config() {
 }
 
 /**
- * Get template dimensions (JSON: `{"width":N,"height":N}` or `null`).
  * @returns {string}
  */
 export function get_template_info() {
@@ -143,7 +135,6 @@ export function get_template_info() {
 }
 
 /**
- * Greet – used for smoke‑testing the WASM bridge.
  * @param {string} name
  * @returns {string}
  */
@@ -167,7 +158,6 @@ export function greet(name) {
 }
 
 /**
- * Check whether a template has been set.
  * @returns {boolean}
  */
 export function has_template() {
@@ -179,15 +169,11 @@ export function main() {
     wasm.main();
 }
 
-/**
- * Reset configuration to defaults.
- */
 export function reset_config() {
     wasm.reset_config();
 }
 
 /**
- * Store a template from raw RGBA pixel data.
  * @param {Uint8Array} data
  * @param {number} width
  * @param {number} height
@@ -199,7 +185,6 @@ export function set_template(data, width, height) {
 }
 
 /**
- * Get the WASM module version.
  * @returns {string}
  */
 export function version() {
@@ -218,9 +203,6 @@ export function version() {
         wasm.__wbindgen_export(deferred1_0, deferred1_1, 1);
     }
 }
-export function __wbg___wbindgen_throw_1506f2235d1bdba0(arg0, arg1) {
-    throw new Error(getStringFromWasm0(arg0, arg1));
-}
 export function __wbg_error_a6fa202b58aa1cd3(arg0, arg1) {
     let deferred0_0;
     let deferred0_1;
@@ -231,9 +213,6 @@ export function __wbg_error_a6fa202b58aa1cd3(arg0, arg1) {
     } finally {
         wasm.__wbindgen_export(deferred0_0, deferred0_1, 1);
     }
-}
-export function __wbg_log_cf2e968649f3384e(arg0) {
-    console.log(getObject(arg0));
 }
 export function __wbg_new_227d7c05414eb861() {
     const ret = new Error();

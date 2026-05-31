@@ -1,7 +1,11 @@
 {
   "name": "spatial_explorer_core",
   "type": "module",
-  "version": "0.2.0",
+  "collaborators": [
+    "Spatial AI Team"
+  ],
+  "description": "Ultra-high-performance WASM computer vision core for Spatial AI Explorer",
+  "version": "1.0.0",
   "files": [
     "spatial_explorer_core_bg.wasm",
     "spatial_explorer_core.js",
