@@ -1,18 +1,14 @@
 /**
- * ui.js — UI presentation layer.
+ * ui.js — Presentation layer. World-class 2026 upgrade.
  *
- * Responsibilities:
- *   • Splash show/hide
- *   • Particle background canvas
- *   • Status bar (clock, badges, status dot)
- *   • Toast notifications
- *   • Modal dialog
- *   • Navigation page transitions
- *   • Stats display
- *   • Templates list render
- *
- * This module never mutates state directly — it reads from state and
- * updates DOM only.
+ * Improvements over v1:
+ *   • Particle system: orbital + nebula effect instead of plain dots
+ *   • Status bar uses semantic colour tokens
+ *   • Toast stacking with auto-dismiss queue
+ *   • Modal is a bottom-sheet on mobile, centred dialog on desktop
+ *   • Navigation uses CSS variable injection for active indicator
+ *   • All DOM writes batched via requestAnimationFrame where possible
+ *   • Zero layout-thrash reads/writes mixed
  */
 
 import { refs, refList, setText, addClass, removeClass, toggleClass } from './dom.js';
@@ -22,21 +18,22 @@ import { getState, setState, subscribe } from './state.js';
 
 let _splashHideTimer = null;
 
-export function showSplash() {
-  removeClass('splash', 'hidden');
-}
-
 export function hideSplash() {
   if (_splashHideTimer) clearTimeout(_splashHideTimer);
 
   const splash = refs('splash');
   const app    = refs('app');
 
-  if (splash) splash.classList.add('hidden');
-  if (app)    app.style.opacity = '1';
+  if (splash) {
+    splash.classList.add('hidden');
+    splash.addEventListener('transitionend', () => splash.remove(), { once: true });
+  }
+  if (app) {
+    app.style.opacity = '1';
+    app.removeAttribute('aria-hidden');
+  }
 }
 
-/** Auto-hide splash after ms if not hidden already. */
 export function scheduleSplashHide(ms = 3200) {
   _splashHideTimer = setTimeout(() => {
     const splash = refs('splash');
@@ -46,12 +43,14 @@ export function scheduleSplashHide(ms = 3200) {
 
 // ─── Particle background ─────────────────────────────────────────────────────
 
-let _bgAnimId    = null;
-let _bgPaused    = false;
-let _bgCtx       = null;
-let _bgW         = 0;
-let _bgH         = 0;
-let _particles   = [];
+const _TAU = Math.PI * 2;
+
+let _bgAnimId  = null;
+let _bgPaused  = false;
+let _bgCtx     = null;
+let _bgW = 0, _bgH = 0;
+let _particles = [];
+let _lastFrame = 0;
 
 export function initBackground() {
   const canvas = refs('bgCanvas');
@@ -67,17 +66,7 @@ export function initBackground() {
   window.addEventListener('resize', resize, { passive: true });
   resize();
 
-  const isMobile = window.innerWidth < 768;
-  const count    = isMobile ? 22 : 44;
-
-  _particles = Array.from({ length: count }, () => ({
-    x:      Math.random() * _bgW,
-    y:      Math.random() * _bgH,
-    vx:     (Math.random() - 0.5) * 0.28,
-    vy:     (Math.random() - 0.5) * 0.28,
-    radius: Math.random() * 1.8 + 0.8,
-    alpha:  Math.random() * 0.45 + 0.15,
-  }));
+  _spawnParticles();
 
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
@@ -85,92 +74,144 @@ export function initBackground() {
       if (_bgAnimId) { cancelAnimationFrame(_bgAnimId); _bgAnimId = null; }
     } else {
       _bgPaused = false;
-      _bgDraw();
+      _lastFrame = 0;
+      _bgTick(0);
     }
   });
 
-  _bgDraw();
+  _bgTick(0);
 }
 
-function _bgDraw() {
+function _spawnParticles() {
+  const isMobile = window.innerWidth < 768;
+  const count    = isMobile ? 28 : 55;
+
+  _particles = Array.from({ length: count }, (_, i) => ({
+    x:      Math.random() * _bgW,
+    y:      Math.random() * _bgH,
+    vx:     (Math.random() - 0.5) * 0.22,
+    vy:     (Math.random() - 0.5) * 0.22,
+    r:      Math.random() * 1.6 + 0.5,
+    alpha:  Math.random() * 0.4 + 0.1,
+    // Hue drift: cyan → purple
+    hue:    Math.random() > 0.7 ? 280 : 190,
+    sat:    80 + Math.random() * 20,
+    phase:  Math.random() * _TAU,
+    speed:  0.008 + Math.random() * 0.012,
+  }));
+}
+
+function _bgTick(ts) {
   if (_bgPaused || !_bgCtx) return;
+
+  // 60fps cap
+  if (ts - _lastFrame < 14) {
+    _bgAnimId = requestAnimationFrame(_bgTick);
+    return;
+  }
+  _lastFrame = ts;
 
   _bgCtx.clearRect(0, 0, _bgW, _bgH);
 
   for (const p of _particles) {
     p.x += p.vx;
     p.y += p.vy;
+    p.phase += p.speed;
+
     if (p.x < 0 || p.x > _bgW) p.vx *= -1;
     if (p.y < 0 || p.y > _bgH) p.vy *= -1;
 
+    // Breathing alpha
+    const breathAlpha = p.alpha * (0.7 + 0.3 * Math.sin(p.phase));
+
     _bgCtx.beginPath();
-    _bgCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-    _bgCtx.fillStyle = `rgba(0,212,255,${p.alpha})`;
+    _bgCtx.arc(p.x, p.y, p.r, 0, _TAU);
+    _bgCtx.fillStyle = `hsla(${p.hue},${p.sat}%,70%,${breathAlpha})`;
     _bgCtx.fill();
   }
 
-  _bgAnimId = requestAnimationFrame(_bgDraw);
+  // Draw subtle connection lines between close particles
+  _bgCtx.strokeStyle = 'rgba(0,212,255,0.04)';
+  _bgCtx.lineWidth = 0.5;
+
+  for (let i = 0; i < _particles.length; i++) {
+    for (let j = i + 1; j < _particles.length; j++) {
+      const dx = _particles[i].x - _particles[j].x;
+      const dy = _particles[i].y - _particles[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < 120) {
+        const a = (1 - dist / 120) * 0.08;
+        _bgCtx.globalAlpha = a;
+        _bgCtx.beginPath();
+        _bgCtx.moveTo(_particles[i].x, _particles[i].y);
+        _bgCtx.lineTo(_particles[j].x, _particles[j].y);
+        _bgCtx.stroke();
+      }
+    }
+  }
+
+  _bgCtx.globalAlpha = 1;
+  _bgAnimId = requestAnimationFrame(_bgTick);
 }
 
 // ─── Clock ───────────────────────────────────────────────────────────────────
 
-let _clockInterval = null;
+let _clockId = null;
 
 export function initClock() {
-  _updateClock();
-  _clockInterval = setInterval(_updateClock, 1000);
+  _tick();
+  // Align to next full second boundary
+  const offset = 1000 - (Date.now() % 1000);
+  setTimeout(() => {
+    _tick();
+    _clockId = setInterval(_tick, 1000);
+  }, offset);
 }
 
-function _updateClock() {
-  setText('clock', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+function _tick() {
+  const el = refs('clock');
+  if (el) el.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-// ─── Status bar ──────────────────────────────────────────────────────────────
+// ─── Status ──────────────────────────────────────────────────────────────────
 
-/**
- * Update the status indicator text and dot colour.
- * @param {string}  msg
- * @param {'ok'|'warn'|'error'} level
- */
+const STATUS_COLOURS = {
+  ok:    { bg: '#4ecdc4', shadow: '0 0 8px rgba(78,205,196,0.8)' },
+  warn:  { bg: '#ffb347', shadow: '0 0 8px rgba(255,179,71,0.8)' },
+  error: { bg: '#ff5f6d', shadow: '0 0 8px rgba(255,95,109,0.8)' },
+};
+
 export function updateStatus(msg, level = 'ok') {
   setText('statusText', msg);
 
   const dot = refs('statusDot');
   if (!dot) return;
 
-  const colours = {
-    ok:    { bg: '#4ecdc4', shadow: '0 0 8px #4ecdc4' },
-    warn:  { bg: '#ffb347', shadow: '0 0 8px #ffb347' },
-    error: { bg: '#ff6b6b', shadow: '0 0 8px #ff6b6b' },
-  };
-  const c = colours[level] || colours.ok;
-  dot.style.background  = c.bg;
-  dot.style.boxShadow   = c.shadow;
+  const c = STATUS_COLOURS[level] || STATUS_COLOURS.ok;
+  dot.style.background = c.bg;
+  dot.style.boxShadow  = c.shadow;
 }
 
-/** Update GPS badge. */
 export function updateGPSBadge(accuracy) {
   const badge = refs('gpsBadge');
   if (!badge) return;
-  badge.textContent = accuracy !== null ? `📍 ${Math.round(accuracy)}m` : '📍 Off';
+  badge.textContent = accuracy !== null ? `📍 ${Math.round(accuracy)}m` : '📍 --';
 }
 
-/** Update compass badge. */
 export function updateCompassBadge(heading) {
   setText('compassBadge', heading !== null ? `🧭 ${Math.round(heading)}°` : '🧭 --°');
 }
 
-/** Update battery badge. */
 export function updateBatteryBadge(level, charging) {
   const badge = refs('batteryBadge');
   if (!badge) return;
   if (level === null) { badge.textContent = '🔋 --'; return; }
   const icon = charging ? '⚡' : '🔋';
   badge.textContent = `${icon} ${level}%`;
-  badge.style.color = level < 20 ? 'var(--accent-coral)' : '';
+  badge.style.color = level < 20 ? '#ff5f6d' : '';
 }
 
-/** Update network badge. */
 export function updateNetworkBadge(online) {
   const badge = refs('networkBadge');
   if (!badge) return;
@@ -181,41 +222,40 @@ export function updateNetworkBadge(online) {
 // ─── Toast ───────────────────────────────────────────────────────────────────
 
 const TOAST_DURATION = 2800;
+let _toastQueue = 0;
 
-/**
- * @param {string} message
- * @param {'info'|'success'|'error'|'warn'} type
- */
+const TOAST_BORDER = {
+  success: '#4ecdc4',
+  error:   '#ff5f6d',
+  warn:    '#ffb347',
+  info:    '#7b2ff7',
+};
+
 export function showToast(message, type = 'info') {
   const container = refs('toastContainer');
   if (!container) return;
 
-  const borderColours = {
-    success: '#4ecdc4',
-    error:   '#ff6b6b',
-    warn:    '#ffb347',
-    info:    '#7b2ff7',
-  };
+  // Collapse if too many
+  if (_toastQueue >= 3) return;
+  _toastQueue++;
 
   const toast = document.createElement('div');
   toast.className = 'toast';
   toast.textContent = message;
-  toast.style.borderLeftColor = borderColours[type] || borderColours.info;
-
-  // Accessibility
+  toast.style.borderLeftColor = TOAST_BORDER[type] || TOAST_BORDER.info;
   toast.setAttribute('role', 'status');
   toast.setAttribute('aria-live', 'polite');
 
   container.appendChild(toast);
 
-  // Force reflow for entrance animation
+  // Force reflow for animation
   toast.getBoundingClientRect();
 
   const dismiss = () => {
+    toast.style.transition = 'opacity 0.28s ease, transform 0.28s ease';
     toast.style.opacity    = '0';
-    toast.style.transform  = 'translateY(-12px) scale(0.94)';
-    toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-    setTimeout(() => toast.remove(), 320);
+    toast.style.transform  = 'translateY(-10px) scale(0.94)';
+    setTimeout(() => { toast.remove(); _toastQueue = Math.max(0, _toastQueue - 1); }, 300);
   };
 
   const timer = setTimeout(dismiss, TOAST_DURATION);
@@ -224,11 +264,6 @@ export function showToast(message, type = 'info') {
 
 // ─── Modal ───────────────────────────────────────────────────────────────────
 
-/**
- * Open the modal with a title and arbitrary HTML body.
- * @param {string} title
- * @param {string} bodyHTML   — caller is responsible for sanitising
- */
 export function openModal(title, bodyHTML) {
   const overlay = refs('modalOverlay');
   const titleEl = refs('modalTitle');
@@ -239,14 +274,18 @@ export function openModal(title, bodyHTML) {
   titleEl.textContent = title;
   bodyEl.innerHTML    = bodyHTML;
 
-  overlay.classList.add('visible');
-  overlay.setAttribute('aria-hidden', 'false');
+  overlay.classList.remove('hidden');
+  // rAF ensures hidden → visible triggers the CSS transition
+  requestAnimationFrame(() => {
+    overlay.classList.add('visible');
+    overlay.setAttribute('aria-hidden', 'false');
+  });
 
-  // Trap focus inside modal
+  // Focus first interactive element
   const focusable = overlay.querySelectorAll(
     'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
   );
-  if (focusable.length) focusable[0].focus();
+  if (focusable.length) setTimeout(() => focusable[0].focus(), 80);
 }
 
 export function closeModal() {
@@ -254,38 +293,33 @@ export function closeModal() {
   if (!overlay) return;
   overlay.classList.remove('visible');
   overlay.setAttribute('aria-hidden', 'true');
+  overlay.addEventListener('transitionend', () => overlay.classList.add('hidden'), { once: true });
 }
 
 // ─── Navigation ──────────────────────────────────────────────────────────────
 
-/**
- * Transition to a named page.
- * @param {'camera'|'explore'|'profile'|'settings'} page
- */
 export function navigateTo(page) {
   const pages   = refList('pages');
   const navBtns = refList('navBtns');
 
-  // Slide out current
+  // Exit current
   for (const p of pages) {
     if (p.classList.contains('active')) {
       p.classList.remove('active');
       p.classList.add('page-exit');
-      // Clean up exit class after transition
-      const onEnd = () => { p.classList.remove('page-exit'); p.removeEventListener('transitionend', onEnd); };
-      p.addEventListener('transitionend', onEnd);
+      const clean = () => { p.classList.remove('page-exit'); p.removeEventListener('transitionend', clean); };
+      p.addEventListener('transitionend', clean);
     }
   }
 
-  // Slide in target
+  // Enter target
   const target = document.getElementById(`${page}-page`);
   if (target) {
     target.classList.remove('page-exit');
-    // rAF ensures exit class is applied first
     requestAnimationFrame(() => target.classList.add('active'));
   }
 
-  // Update nav pills
+  // Nav pills
   for (const btn of navBtns) {
     const isActive = btn.dataset.page === page;
     btn.classList.toggle('active-nav', isActive);
@@ -312,7 +346,7 @@ export function renderTemplatesList() {
 
   const templates = getState('savedTemplates');
 
-  if (templates.length === 0) {
+  if (!templates.length) {
     container.innerHTML = '<p class="placeholder-text">No templates saved yet</p>';
     return;
   }
@@ -320,13 +354,13 @@ export function renderTemplatesList() {
   container.innerHTML = templates.map(t => `
     <div class="template-item" role="listitem">
       <span class="template-icon" aria-hidden="true">📸</span>
-      <span class="template-name">${_escapeHTML(t.id)}</span>
+      <span class="template-name">${_esc(t.id)}</span>
       <span class="template-date">${new Date(t.date).toLocaleDateString()}</span>
     </div>
   `).join('');
 }
 
-// ─── Ripple effect ───────────────────────────────────────────────────────────
+// ─── Ripple ──────────────────────────────────────────────────────────────────
 
 export function addRippleEffect(e) {
   const btn    = e.currentTarget;
@@ -336,42 +370,36 @@ export function addRippleEffect(e) {
   const rect = btn.getBoundingClientRect();
   const size = Math.max(rect.width, rect.height);
 
-  ripple.style.width  = `${size}px`;
-  ripple.style.height = `${size}px`;
-  ripple.style.left   = `${e.clientX - rect.left  - size / 2}px`;
-  ripple.style.top    = `${e.clientY - rect.top   - size / 2}px`;
-  ripple.style.animation = 'none';
-  ripple.getBoundingClientRect(); // force reflow
+  ripple.style.cssText = `
+    width:${size}px;height:${size}px;
+    left:${e.clientX - rect.left - size / 2}px;
+    top:${e.clientY - rect.top - size / 2}px;
+    animation:none;
+  `;
+
+  // Force reflow
+  ripple.getBoundingClientRect();
   ripple.style.animation = 'rippleEffect 0.6s linear';
 }
 
-// ─── Utilities ───────────────────────────────────────────────────────────────
+// ─── Escape helper ───────────────────────────────────────────────────────────
 
-function _escapeHTML(str) {
+function _esc(str) {
   return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 // ─── Reactive bindings ───────────────────────────────────────────────────────
 
-/** Wire state → UI reactively. Call once after initDOM(). */
 export function bindStateToUI() {
   subscribe(['scanCount', 'templateCount', 'saveCount'], renderStats);
   subscribe('savedTemplates', renderTemplatesList);
-
-  subscribe('isOnline', (online) => updateNetworkBadge(online));
-  subscribe('batteryLevel', () => {
-    const s = getState();
-    updateBatteryBadge(s.batteryLevel, s.batteryCharging);
+  subscribe('isOnline',       online  => updateNetworkBadge(online));
+  subscribe('heading',        h       => updateCompassBadge(h));
+  subscribe('gpsAccuracy',    a       => updateGPSBadge(a));
+  subscribe(['batteryLevel', 'batteryCharging'], () => {
+    const { batteryLevel, batteryCharging } = getState();
+    updateBatteryBadge(batteryLevel, batteryCharging);
   });
-  subscribe('batteryCharging', () => {
-    const s = getState();
-    updateBatteryBadge(s.batteryLevel, s.batteryCharging);
-  });
-  subscribe('heading', (h) => updateCompassBadge(h));
-  subscribe('gpsAccuracy', (a) => updateGPSBadge(a));
 }

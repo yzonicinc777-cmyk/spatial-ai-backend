@@ -1,5 +1,10 @@
-const CACHE_NAME = 'spatial-ai-v2'; // Changed from v1 to force a refresh
-const urlsToCache = [
+/**
+ * sw.js — Service Worker with stale-while-revalidate strategy
+ * + precaching for all shell assets.
+ */
+
+const CACHE      = 'spatial-ai-v3';
+const PRECACHE   = [
   '/',
   '/index.html',
   '/style.css',
@@ -7,23 +12,47 @@ const urlsToCache = [
   '/detection.worker.js',
   '/manifest.json',
   '/pkg/spatial_explorer_core.js',
-  '/pkg/spatial_explorer_core_bg.wasm'
+  '/pkg/spatial_explorer_core_bg.wasm',
 ];
 
-self.addEventListener('fetch', event => {
-  // Never intercept non-GET or cross-origin requests
-  if (event.request.method !== 'GET') return;
-  if (!event.request.url.startsWith(self.location.origin)) return;
+// Install: precache shell assets
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open(CACHE)
+      .then(c => c.addAll(PRECACHE))
+      .then(() => self.skipWaiting())
+  );
+});
 
-  event.respondWith(
-    caches.open(CACHE_NAME).then(async cache => {
-      const cached = await cache.match(event.request);
-      const fetchPromise = fetch(event.request).then(response => {
-        if (response && response.status === 200) {
-          cache.put(event.request, response.clone());
+// Activate: prune old caches
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+      )
+    ).then(() => self.clients.claim())
+  );
+});
+
+// Fetch: stale-while-revalidate for same-origin GETs
+self.addEventListener('fetch', (e) => {
+  if (e.request.method !== 'GET') return;
+  if (!e.request.url.startsWith(self.location.origin)) return;
+  // Never intercept WASM range requests (causes issues in some browsers)
+  if (e.request.url.endsWith('.wasm') && e.request.headers.has('range')) return;
+
+  e.respondWith(
+    caches.open(CACHE).then(async cache => {
+      const cached = await cache.match(e.request);
+      const fetchPromise = fetch(e.request).then(res => {
+        if (res && res.status === 200 && res.type !== 'opaque') {
+          cache.put(e.request, res.clone());
         }
-        return response;
-      }).catch(() => cached);  // network fail → return cache
+        return res;
+      }).catch(() => cached);
+
+      // Stale-while-revalidate: return cached immediately, update in bg
       return cached || fetchPromise;
     })
   );

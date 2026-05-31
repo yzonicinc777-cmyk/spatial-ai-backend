@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0, interactive-widget=resizes-content" />
   <title>Spatial AI • Explorer</title>
   <meta name="description" content="Point your camera, find anything. A spatial browser for the real world." />
-  <meta name="theme-color" content="#0a0f1c" />
-  <meta name="color-scheme" content="dark" />
-  <meta name="format-detection" content="telephone=no" />
+  <meta name="theme-color" content="#02040a" />
 
   <!-- PWA / mobile shell -->
   <meta name="mobile-web-app-capable" content="yes" />
@@ -17,24 +15,19 @@
   <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   <link rel="manifest" href="/manifest.json" />
 
-  <!-- Favicon (inline SVG data URI — eliminates the 404) -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='28' fill='none' stroke='%2300d4ff' stroke-width='4'/><polygon points='32,14 36,28 50,32 36,36 32,50 28,36 14,32 28,28' fill='%2300d4ff'/></svg>" type="image/svg+xml" />
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='28' fill='none' stroke='%2300d4ff' stroke-width='3'/><polygon points='32,14 36,28 50,32 36,36 32,50 28,36 14,32 28,28' fill='%2300d4ff'/></svg>" type="image/svg+xml" />
 
   <!-- Security -->
   <meta http-equiv="X-Content-Type-Options" content="nosniff" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta http-equiv="Permissions-Policy" content="camera=*, microphone=*, geolocation=*, gyroscope=*, magnetometer=*" />
 
-  <!--
-    Content-Security-Policy:
-    - wasm-unsafe-eval is required for WebAssembly (replaces unsafe-eval where possible)
-    - blob: in worker-src allows the service worker
-  -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    font-src 'self' https://fonts.gstatic.com;
+    font-src 'self' https://fonts.gstatic.com data:;
     img-src 'self' data: blob: https://*.tile.openstreetmap.org;
     connect-src 'self' https://overpass-api.de https://nominatim.openstreetmap.org https://*.cloudflare.com https://*.amazonaws.com;
     media-src 'self' blob:;
@@ -42,125 +35,138 @@
     manifest-src 'self';
   " />
 
-  <!-- Stylesheet (preload + load; crossorigin="anonymous" matches module fetch mode) -->
-  <link rel="preload" href="/style.evolved.v2.css" as="style" />
-<link rel="stylesheet" href="/style.evolved.v2.css" />
-  <!--
-    app.js is a JS module (type="module"), so the browser fetches it with
-    credentials mode "omit" by default. The preload must carry
-    crossorigin="anonymous" to match, otherwise the browser ignores the
-    preload cache and re-fetches — generating the "not used" warning.
-  -->
-  <link rel="modulepreload" href="/app.js" crossorigin="anonymous" />
-  <link rel="modulepreload" href="/pkg/spatial_explorer_core.js" crossorigin="anonymous" />
-
-  <!-- Fonts -->
+  <!-- Fonts — preconnect first, then the actual load -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,200;0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
 
-  <!-- Fix: ui.js expects a .status-dot element; ensure it's present -->
-  <!-- (status dot already exists in markup below: <span class="status-dot"></span>) -->
+  <!-- Stylesheet -->
+  <link rel="preload" href="/style.css" as="style" />
+  <link rel="stylesheet" href="/style.css" />
 
+  <!-- Module preloads -->
+  <link rel="modulepreload" href="/app.js" crossorigin="anonymous" />
+  <link rel="modulepreload" href="/pkg/spatial_explorer_core.js" crossorigin="anonymous" />
 </head>
-<body class="spatial-shell">
+<body>
 
-  <!-- ============= SPLASH SCREEN ============= -->
-  <div id="splash-screen" class="splash-screen">
+  <!-- ═══════════════════ SPLASH SCREEN ═══════════════════ -->
+  <div id="splash-screen" class="splash-screen" role="status" aria-label="Loading Spatial AI">
     <div class="splash-content">
       <div class="splash-logo">
+
         <div class="logo-icon">
           <svg viewBox="0 0 64 64" class="logo-svg" aria-hidden="true">
             <defs>
-              <linearGradient id="splashGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <linearGradient id="splashGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stop-color="#00d4ff" />
                 <stop offset="100%" stop-color="#7b2ff7" />
               </linearGradient>
             </defs>
-            <circle cx="32" cy="32" r="28" fill="none" stroke="url(#splashGradient)" stroke-width="2"
+            <circle cx="32" cy="32" r="28" fill="none" stroke="url(#splashGrad)" stroke-width="2"
               stroke-dasharray="175" stroke-dashoffset="175">
-              <animate attributeName="stroke-dashoffset" from="175" to="0" dur="1.2s" fill="freeze" />
+              <animate attributeName="stroke-dashoffset" from="175" to="0" dur="1s" fill="freeze" />
             </circle>
+            <polygon points="32,18 35.5,29 47,32 35.5,35 32,46 28.5,35 17,32 28.5,29"
+              fill="url(#splashGrad)" opacity="0">
+              <animate attributeName="opacity" from="0" to="1" dur="0.4s" begin="0.9s" fill="freeze" />
+            </polygon>
           </svg>
         </div>
+
         <h1 class="splash-title">
           <span>Spatial</span>
-          <span class="accent">AI</span>
+          <span class="accent"> AI</span>
         </h1>
         <p class="splash-sub">explore the world through your lens</p>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="splash-progress" aria-hidden="true">
+        <div class="splash-progress-fill"></div>
       </div>
     </div>
   </div>
 
-  <!-- ============= DYNAMIC BACKGROUND (particle canvas) ============= -->
+  <!-- ═══════════════════ PARTICLE BG ═══════════════════ -->
   <canvas id="bg-canvas" class="bg-canvas" aria-hidden="true"></canvas>
 
-  <!-- ============= APP CONTAINER ============= -->
-  <div id="app" class="app-container" style="opacity:0;">
+  <!-- ═══════════════════ APP SHELL ═══════════════════ -->
+  <div id="app" class="app-container" style="opacity:0;" aria-hidden="true">
 
-    <!-- ============= STATUS BAR ============= -->
+    <!-- ── Status Bar ── -->
     <header class="status-bar" role="banner">
       <div class="status-left">
-        <span id="clock" class="status-time" aria-live="off">12:00</span>
+        <span id="clock" class="status-time" aria-live="off" aria-label="Current time">12:00</span>
       </div>
       <div class="status-center">
         <div class="status-indicator" id="status-indicator" role="status" aria-live="polite">
-          <span class="status-dot"></span>
+          <span class="status-dot" aria-hidden="true"></span>
           <span id="status-text">Ready</span>
         </div>
       </div>
       <div class="status-right">
-        <span id="gps-badge"     class="status-badge" title="GPS accuracy">📍 Lock</span>
+        <span id="gps-badge"     class="status-badge" title="GPS accuracy">📍 --</span>
         <span id="compass-badge" class="status-badge" title="Compass heading">🧭 --°</span>
-        <span id="battery-badge" class="status-badge" title="Battery level">🔋 --</span>
-        <span id="network-badge" class="status-badge online" title="Network status">🌐</span>
+        <span id="battery-badge" class="status-badge" title="Battery">🔋 --</span>
+        <span id="network-badge" class="status-badge online" title="Network">🌐</span>
       </div>
     </header>
 
-    <!-- ============= MAIN PAGES ============= -->
+    <!-- ── Pages ── -->
     <main class="main-content" role="main">
 
-      <!-- ── Camera Page ── -->
+      <!-- Camera Page -->
       <section id="camera-page" class="page active" aria-label="Camera view">
         <div class="camera-container">
           <video id="video" autoplay playsinline muted disablePictureInPicture
             aria-label="Live camera feed"></video>
           <canvas id="overlay-canvas" class="overlay-canvas" aria-hidden="true"></canvas>
 
-          <!-- Scan Reticle -->
-          <div class="scan-reticle" aria-hidden="true"></div>
+          <!-- Scan reticle — 4 corner divs for full control -->
+          <div class="scan-reticle" aria-hidden="true">
+            <div class="scan-corner-tr"></div>
+            <div class="scan-corner-bl"></div>
+            <div class="scan-line"></div>
+          </div>
 
           <!-- AR Detection Box -->
           <div id="detection-box" class="detection-box hidden" role="status" aria-live="polite">
-            <div class="detection-label"   id="detection-label">Object</div>
-            <div class="detection-distance" id="detection-distance">2.3 m</div>
-            <button class="detection-buy-btn" id="detection-buy-btn" aria-label="Buy detected object">Buy →</button>
+            <div class="detection-label"    id="detection-label">Object</div>
+            <div class="detection-distance" id="detection-distance">~1.5 m</div>
+            <button class="detection-buy-btn" id="detection-buy-btn" aria-label="View details for detected object">Details →</button>
           </div>
 
           <!-- Compass Ring -->
-          <div id="compass-ring" class="compass-ring hidden" aria-hidden="true">
+          <div id="compass-ring" class="compass-ring" aria-hidden="true">
             <svg viewBox="0 0 120 120" class="compass-svg">
               <defs>
-                <linearGradient id="compassGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <linearGradient id="compassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stop-color="#00d4ff" />
                   <stop offset="100%" stop-color="#7b2ff7" />
                 </linearGradient>
               </defs>
-              <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2" />
-              <circle cx="60" cy="60" r="48" fill="none" stroke="url(#compassGradient)"
-                stroke-width="4" stroke-dasharray="301" stroke-dashoffset="0" />
-              <polygon points="60,20 64,55 95,60 64,65 60,100 56,65 25,60 56,55" fill="white" />
+              <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+              <circle cx="60" cy="60" r="48" fill="none" stroke="url(#compassGrad)" stroke-width="3"
+                stroke-dasharray="301" stroke-dashoffset="0" stroke-linecap="round"/>
+              <!-- N marker -->
+              <text x="60" y="20" text-anchor="middle" font-size="7" font-family="Space Mono,monospace"
+                fill="rgba(0,212,255,0.9)" font-weight="700">N</text>
+              <!-- Needle -->
+              <polygon points="60,25 63,55 60,58 57,55" fill="#00d4ff" opacity="0.9"/>
+              <polygon points="60,91 63,65 60,62 57,65" fill="rgba(255,255,255,0.25)"/>
+              <circle cx="60" cy="60" r="4" fill="rgba(0,212,255,0.6)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
             </svg>
           </div>
         </div>
 
         <!-- Voice Command Bar -->
-        <div class="voice-command-bar" id="voice-bar" role="region" aria-label="Voice commands">
+        <div class="voice-command-bar" id="voice-bar" role="region" aria-label="Voice control">
           <div class="voice-input-container">
-            <button id="mic-btn" class="mic-btn" aria-label="Start voice command" aria-pressed="false">
+            <button id="mic-btn" class="mic-btn" aria-label="Activate voice command" aria-pressed="false">
               <span class="mic-icon" aria-hidden="true">🎤</span>
             </button>
-            <div class="voice-text" id="voice-text" aria-live="polite">
+            <div class="voice-text" id="voice-text" aria-live="polite" aria-atomic="true">
               Say "find red shoes near me"
             </div>
           </div>
@@ -172,16 +178,16 @@
         <!-- Quick Actions -->
         <div class="quick-actions" role="toolbar" aria-label="Quick actions">
           <button class="quick-action-btn" id="scanBtn"        aria-label="Scan center of frame">🔍 Scan</button>
-          <button class="quick-action-btn" id="setTemplateBtn" aria-label="Set detection template">✨ Set Template</button>
+          <button class="quick-action-btn" id="setTemplateBtn" aria-label="Set detection template">✦ Template</button>
           <button class="quick-action-btn" id="flashlightBtn"  aria-label="Toggle flashlight">💡 Light</button>
         </div>
       </section>
 
-      <!-- ── Explore Page ── -->
+      <!-- Explore Page -->
       <section id="explore-page" class="page" aria-label="Explore nearby">
         <div class="page-header">
           <button class="back-btn" aria-label="Back to camera">←</button>
-          <h2>Explore Nearby</h2>
+          <h2>Explore</h2>
         </div>
         <div class="explore-container">
           <div class="search-box" role="search">
@@ -189,14 +195,13 @@
             <input type="search" id="explore-search"
               placeholder="Search places, products…"
               class="search-input"
-              autocomplete="off"
-              spellcheck="false" />
-            <button class="search-btn" aria-label="Submit search">🔍</button>
+              autocomplete="off" spellcheck="false" />
+            <button class="search-btn" aria-label="Search">🔍</button>
           </div>
-          <div id="map-container" class="map-container" role="img" aria-label="Offline map">
+          <div id="map-container" class="map-container" role="img" aria-label="Map view">
             <div class="map-placeholder">
               <div class="map-pin" aria-hidden="true">📍</div>
-              <p>Loading offline map…</p>
+              <p>Loading map…</p>
             </div>
           </div>
           <div id="poi-list" class="poi-list" role="list" aria-live="polite">
@@ -205,11 +210,11 @@
         </div>
       </section>
 
-      <!-- ── Profile Page ── -->
+      <!-- Profile Page -->
       <section id="profile-page" class="page" aria-label="Your profile">
         <div class="page-header">
           <button class="back-btn" aria-label="Back to camera">←</button>
-          <h2>Your Profile</h2>
+          <h2>Profile</h2>
         </div>
         <div class="profile-grid">
           <div class="card">
@@ -246,7 +251,7 @@
         </div>
       </section>
 
-      <!-- ── Settings Page ── -->
+      <!-- Settings Page -->
       <section id="settings-page" class="page" aria-label="Settings">
         <div class="page-header">
           <button class="back-btn" aria-label="Back to camera">←</button>
@@ -271,53 +276,50 @@
 
     </main>
 
-    <!-- ============= BOTTOM NAVIGATION ============= -->
+    <!-- ── Bottom Nav ── -->
     <nav class="bottom-nav" id="nav-bar" aria-label="Main navigation">
       <button class="nav-btn active-nav" data-page="camera" aria-label="Camera" aria-current="page">
         <span class="nav-icon" aria-hidden="true">📷</span>
         <span class="nav-label">Camera</span>
         <span class="nav-ripple" aria-hidden="true"></span>
       </button>
-      <button class="nav-btn" data-page="explore" aria-label="Explore">
-        <span class="nav-icon" aria-hidden="true">🗺️</span>
+      <button class="nav-btn" data-page="explore" aria-label="Explore nearby">
+        <span class="nav-icon" aria-hidden="true">🗺</span>
         <span class="nav-label">Explore</span>
         <span class="nav-ripple" aria-hidden="true"></span>
       </button>
-      <button class="nav-btn" data-page="profile" aria-label="Profile">
+      <button class="nav-btn" data-page="profile" aria-label="Profile and settings">
         <span class="nav-icon" aria-hidden="true">👤</span>
         <span class="nav-label">Profile</span>
         <span class="nav-ripple" aria-hidden="true"></span>
       </button>
     </nav>
 
-    <!-- ============= FLOATING ACTION BUTTON ============= -->
+    <!-- ── FAB ── -->
     <div class="fab-container">
-      <button class="fab" id="ai-lens-fab" aria-label="Activate AI Lens — scan centre of frame">
+      <button class="fab" id="ai-lens-fab" aria-label="AI Lens — scan centre of frame">
         <span class="fab-inner" aria-hidden="true">⚡</span>
       </button>
     </div>
 
-    <!-- ============= TOAST CONTAINER ============= -->
+    <!-- ── Toasts ── -->
     <div id="toast-container" class="toast-container" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
-    <!-- ============= MODAL OVERLAY ============= -->
+    <!-- ── Modal ── -->
     <div id="modal-overlay" class="modal-overlay hidden"
       role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
       <div class="modal-content">
         <div class="modal-header">
           <h3 id="modal-title">Details</h3>
-          <button class="modal-close" id="modal-close" aria-label="Close modal">✕</button>
+          <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
         </div>
-        <div id="modal-body" class="modal-body">
-          <!-- Dynamic content injected by JS -->
-        </div>
+        <div id="modal-body" class="modal-body"></div>
       </div>
     </div>
 
   </div><!-- /#app -->
 
-  <!-- Entry point — type="module" fetches with credentials:"omit",
-       matching the modulepreload above, so no cache miss warning -->
+  <style>.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}</style>
   <script type="module" src="/app.js" crossorigin="anonymous"></script>
 </body>
 </html>
