@@ -40,10 +40,24 @@ let _processing  = false;
 let _hasTemplate = false;
 
 const DEFAULT_CONFIG = {
-  min_confidence: 0.35,
-  step:           2,
-  multi_scale:    true,
-  use_color:      true,
+  // Must match Rust DetectionConfig struct exactly — all fields required
+  min_confidence:      0.35,
+  max_results:         5,
+  step:                2,
+  multi_scale:         true,
+  pyramid_levels:      3,
+  harris_k:            0.04,
+  harris_threshold:    1000000.0,
+  min_feature_inliers: 6,
+  ransac_iterations:   200,
+  histogram_gate:      0.10,
+  iou_threshold:       0.30,
+  search_margin:       64,
+  use_edges:           false,
+  use_color:           true,
+  use_hog:             true,
+  use_features:        false,
+  fusion_weights:      [0.6, 0.3, 0.1],
 };
 
 let _config = { ...DEFAULT_CONFIG };
@@ -176,8 +190,13 @@ function _handleClear() {
 
 function _handleConfigure(payload) {
   if (payload && typeof payload === 'object') {
-    // Validate and merge only known keys
-    const allowed = new Set(['min_confidence', 'step', 'multi_scale', 'use_color']);
+    // Validate and merge only known keys (must match Rust DetectionConfig exactly)
+    const allowed = new Set([
+      'min_confidence', 'max_results', 'step', 'multi_scale', 'pyramid_levels',
+      'harris_k', 'harris_threshold', 'min_feature_inliers', 'ransac_iterations',
+      'histogram_gate', 'iou_threshold', 'search_margin',
+      'use_edges', 'use_color', 'use_hog', 'use_features', 'fusion_weights',
+    ]);
     for (const k of Object.keys(payload)) {
       if (allowed.has(k)) _config[k] = payload[k];
     }

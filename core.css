@@ -926,27 +926,9 @@ body.template-mode .scan-corner-bl {
 #detection-buy-btn:active { transform: translateY(-50%) scale(0.92); }
 
 /* ─── §11  COMPASS RING ──────────────────────────────────────────────────── */
-/* ID: #compass-ring — rotated by camera.js bindCompassRing() */
-/* Visibility via state subscription in camera.js */
+/* Compass ring disabled — hidden via display:none */
 #compass-ring {
-  position: absolute;
-  /* Position above the gemini bar (58px) with breathing room */
- bottom: calc(102px + var(--safe-bottom));
-  right: calc(var(--safe-right) + var(--sp-4));
-  width: 88px;
-  height: 88px;
-  z-index: var(--z-compass);
-  transition:
-    opacity var(--dur-mid) var(--ease-snappy),
-    transform var(--dur-mid) var(--ease-silk),
-    visibility var(--dur-mid);
-  will-change: transform;
-}
-
-.compass-svg {
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 0 14px rgba(0,212,255,0.28));
+  display: none !important;
 }
 
 /* ─── §12  GEMINI-STYLE INPUT BAR ───────────────────────────────────────── */
@@ -1427,11 +1409,9 @@ body.template-mode .scan-corner-bl {
 
 /* ─── §17  EXPLORE PAGE ──────────────────────────────────────────────────── */
 #explore-page {
-  /* Override the deep-space base for this page only */
-  background:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99,163,255,0.06) 0%, transparent 60%),
-    hsla(36, 24%, 96%, 0.922);
-  color: hsl(52, 75%, 84%);
+  /* Claude home screen colour: warm cream background */
+  background: #f5f4ef;
+  color: #1a1a1a;
 }
  
 /* ── Page header — dark text on light background ── */
@@ -1447,13 +1427,13 @@ body.template-mode .scan-corner-bl {
  
 /* Back button — dark on light */
 #explore-page .back-btn {
-  background: #f9f7c1fa;
+  background: rgba(0,0,0,0.06);
   border-color: rgba(0,0,0,0.10);
   color: #1a1a1a;
 }
  
 #explore-page .back-btn:hover {
-  background: #f4f1b2f5;
+  background: rgba(0,0,0,0.10);
   border-color: rgba(0,0,0,0.18);
   color: #000;
 }
@@ -1617,10 +1597,15 @@ body.template-mode .scan-corner-bl {
 .placeholder-text {
   font-family: var(--font-sans);
   font-size: var(--t-sm);
-  color: rgba(0,0,0,0.36);
+  color: rgba(0,0,0,0.42);
   text-align: center;
   padding: var(--sp-6);
   font-style: italic;
+}
+
+/* Explore page placeholder: inherits dark text correctly */
+#explore-page .placeholder-text {
+  color: rgba(0,0,0,0.42);
 }
 
 /* Force explore page header icon / emoji to render dark (not white/glowing) */

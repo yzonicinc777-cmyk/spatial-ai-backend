@@ -86,21 +86,23 @@ async function start() {
     
     // 2. Define defaults matching the Rust 'DetectionConfig' struct exactly
     const defaultConfig = {
-        min_confidence: 0.35,
-        max_results: 5,
-        step: 2,
-        multi_scale: true,
-        use_edges: false,
-        use_color: true,
-        use_features: false,
-        pyramid_levels: 3,
-        harris_k: 0.04,
-        harris_threshold: 1e6, // Note: Rust uses 1e6 (number), not "1e6" (string)
+        min_confidence:      0.35,
+        max_results:         5,
+        step:                2,
+        multi_scale:         true,
+        pyramid_levels:      3,
+        harris_k:            0.04,
+        harris_threshold:    1000000.0,
         min_feature_inliers: 6,
-        ransac_iterations: 200,
-        histogram_gate: 0.10,
-        iou_threshold: 0.30,
-        search_margin: 64
+        ransac_iterations:   200,
+        histogram_gate:      0.10,
+        iou_threshold:       0.30,
+        search_margin:       64,
+        use_edges:           false,
+        use_color:           true,
+        use_hog:             true,   // ← was missing — caused "missing field `use_hog`" error
+        use_features:        false,
+        fusion_weights:      [0.6, 0.3, 0.1],  // ← was missing
     };
 
     // 3. Merge saved settings with defaults and configure

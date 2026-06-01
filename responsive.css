@@ -341,6 +341,15 @@
     margin: 0 !important;
   }
 
+  /* Explore + Profile: full-screen desktop layout — no narrow column */
+  #explore-page,
+  #profile-page {
+    max-width: none !important;
+    padding-left: var(--sp-16) !important;
+    padding-right: var(--sp-16) !important;
+    width: 100% !important;
+  }
+
   /* Three-col profile grid on laptop */
   .profile-grid {
     display: grid;
@@ -371,6 +380,38 @@
   }
 
   .stat:hover { transform: translateY(-3px); }
+
+  /* Explore: 2-col sidebar+map layout on desktop */
+  #explore-page .explore-container {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    grid-template-rows: auto 1fr;
+    gap: var(--sp-4);
+    align-items: start;
+  }
+
+  #explore-page .search-box {
+    grid-column: 1 / -1;
+  }
+
+  #explore-page #map-container {
+    grid-column: 2;
+    grid-row: 2;
+    height: 480px;
+  }
+
+  #explore-page #poi-list {
+    grid-column: 1;
+    grid-row: 2;
+    max-height: 480px;
+    overflow-y: auto;
+  }
+
+  /* Profile: wider 3-col grid with nicer spacing */
+  #profile-page .profile-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--sp-6);
+  }
 }
 
 /* ─── §7  DESKTOP — 1280px+ ──────────────────────────────────────────────── */
@@ -396,6 +437,15 @@
     left: 0 !important;
     right: 0 !important;
     margin: 0 !important;
+  }
+
+  /* Explore + Profile: full-screen on wide desktop */
+  #explore-page,
+  #profile-page {
+    max-width: none !important;
+    padding-left: var(--sp-20) !important;
+    padding-right: var(--sp-20) !important;
+    width: 100% !important;
   }
 
   /* More pronounced hover states on desktop */
