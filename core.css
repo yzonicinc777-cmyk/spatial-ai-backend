@@ -14,7 +14,7 @@
    ════════════════════════════════════════════════════════════════════════════ */
 
 /* ─── §0  FONT IMPORT ────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@700;800&display=swap');
 
 /* ─── §1  DESIGN TOKENS ──────────────────────────────────────────────────── */
 :root {
@@ -78,9 +78,9 @@
     radial-gradient(ellipse 40% 35% at 75% 20%, rgba(255,184,69,0.025) 0%, transparent 55%);
 
   /* ── Typography — Syne display, JetBrains Mono data ── */
-  --font-display:   'Syne', -apple-system, 'SF Pro Display', sans-serif;
-  --font-sans:      'Syne', -apple-system, 'Helvetica Neue', sans-serif;
-  --font-mono:      'JetBrains Mono', 'SF Mono', 'Cascadia Code', monospace;
+ --font-display:   'Syne', -apple-system, 'SF Pro Display', sans-serif;
+ --font-sans:      'DM Sans', -apple-system, 'Helvetica Neue', sans-serif;
+ --font-mono:      'DM Mono', 'SF Mono', 'Cascadia Code', monospace;
 
   /* Fluid typescale (clamp min, fluid, max) */
   --t-2xs:  clamp(0.58rem,  1.1vw,  0.68rem);
@@ -559,6 +559,11 @@ body::before {
 .status-center { flex: 0 0 auto; }
 .status-right  { flex: 1; justify-content: flex-end; flex-wrap: nowrap; }
 
+/* On desktop, the centre status indicator is secondary — reduce visual weight */
+@media screen and (min-width: 1024px) {
+  .status-center { opacity: 0.55; }
+}
+
 /* Clock — ID: #clock, set by ui.js initClock() */
 .status-time {
   font-family: var(--font-mono);
@@ -672,11 +677,21 @@ body::before {
 }
 
 /* Active page — class added by ui.js navigateTo() */
-.page.active {
+ .page.active {
   opacity: 1;
   visibility: visible;
   transform: none;
-  contain: none; /* Allow scrolling children to paint */
+  contain: none;
+}
+
+/* Inner pages (not camera) get the ambient mesh background for colour consistency */
+#explore-page.active,
+#profile-page.active,
+#settings-page.active {
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 20%, rgba(0,212,255,0.045) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 70% at 85% 80%, rgba(139,61,255,0.045) 0%, transparent 55%),
+    var(--deep-space);
 }
 
 /* Exit animation — class added by ui.js navigateTo() transitioning away */
@@ -944,7 +959,8 @@ body.template-mode .scan-corner-bl {
 /* Visibility via state subscription in camera.js */
 #compass-ring {
   position: absolute;
-  bottom: calc(var(--nav-h) + var(--nav-bottom) + var(--sp-12) + var(--safe-bottom));
+  /* Position above the gemini bar (58px) with breathing room */
+  bottom: calc(88px + var(--safe-bottom));
   right: calc(var(--safe-right) + var(--sp-4));
   width: 88px;
   height: 88px;
@@ -981,13 +997,16 @@ body.template-mode .scan-corner-bl {
   padding: 0 10px 0 10px;
   z-index: var(--z-camera-ui);
   box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3), var(--glass-inset);
-  animation: slideUp 0.65s var(--ease-expo) 0.55s both;
+  animation: slideUp 0.65s var(--ease-expo) 0.55s forwards;
+  will-change: transform;
 }
 
 /* Listening state */
 .gemini-bar.listening {
   border-color: rgba(0,212,255,0.4);
   box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,212,255,0.18), 0 0 28px rgba(0,212,255,0.10);
+  /* Preserve centering — never override transform here */
+  transform: translateX(-50%);
 }
 
 /* + button wrap — relative for popover positioning */
@@ -1433,82 +1452,132 @@ body.template-mode .scan-corner-bl {
 }
 
 /* ─── §17  EXPLORE PAGE ──────────────────────────────────────────────────── */
+#explore-page {
+  /* Override the deep-space base for this page only */
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99,163,255,0.06) 0%, transparent 60%),
+    #f7f5f2;
+  color: #1a1a1a;
+}
+ 
+/* ── Page header — dark text on light background ── */
+#explore-page .page-header h2 {
+  background: linear-gradient(135deg, #0f0f0f 0%, #2d2d2d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+}
+ 
+/* Back button — dark on light */
+#explore-page .back-btn {
+  background: rgba(0,0,0,0.06);
+  border-color: rgba(0,0,0,0.10);
+  color: #1a1a1a;
+}
+ 
+#explore-page .back-btn:hover {
+  background: rgba(0,0,0,0.10);
+  border-color: rgba(0,0,0,0.18);
+  color: #000;
+}
+ 
+/* ── Explore icon colour on header — must be black/dark ── */
+#explore-page .page-header .nav-icon,
+#explore-page .page-header .back-btn {
+  color: #111111;
+  filter: none;
+}
+ 
+/* ── Container ── */
 .explore-container {
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
 }
-
-/* Search box — ID: #explore-search input inside */
+ 
+/* ── Search box — light, clean, Claude-chat style ── */
 .search-box {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  background: rgba(9,15,28,0.72);
-  border: 0.5px solid rgba(255,255,255,0.088);
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.10);
   border-radius: var(--r-pill);
   padding: var(--sp-2) var(--sp-3) var(--sp-2) var(--sp-4);
-  box-shadow: var(--shadow-sm), var(--glass-inset);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
+  box-shadow:
+    0 1px 3px rgba(0,0,0,0.08),
+    0 4px 12px rgba(0,0,0,0.04);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   transition:
     border-color var(--dur-mid) var(--ease-snappy),
     box-shadow var(--dur-mid);
 }
-
+ 
 .search-box:focus-within {
-  border-color: rgba(0,212,255,0.42);
-  box-shadow: var(--shadow-sm), 0 0 0 1px rgba(0,212,255,0.14), var(--glass-inset);
+  border-color: rgba(65,130,255,0.55);
+  box-shadow:
+    0 1px 3px rgba(0,0,0,0.08),
+    0 0 0 3px rgba(65,130,255,0.14);
 }
-
-/* Search input — ID: #explore-search */
+ 
+/* Search input */
 #explore-search {
   flex: 1;
   background: none;
   border: none;
   outline: none;
+  font-family: var(--font-sans);
   font-size: var(--t-sm);
-  color: rgba(232,244,255,0.94);
+  color: #1a1a1a;
   font-weight: 400;
   min-width: 0;
   -webkit-user-select: text;
   user-select: text;
 }
-
-#explore-search::placeholder { color: rgba(200,220,255,0.32); }
-
+ 
+#explore-search::placeholder {
+  color: rgba(0,0,0,0.36);
+  font-weight: 400;
+}
+ 
+/* Search button */
 .search-btn {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: var(--ion-dim);
-  border: 0.5px solid rgba(0,212,255,0.22);
+  background: rgba(65,130,255,0.10);
+  border: 1px solid rgba(65,130,255,0.20);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   flex-shrink: 0;
   transition:
     background var(--dur-fast) var(--ease-snappy),
     transform var(--dur-fast) var(--ease-bounce);
   touch-action: manipulation;
+  color: rgba(65,130,255,0.85);
 }
-
-.search-btn:hover  { background: rgba(0,212,255,0.18); }
+ 
+.search-btn:hover  { background: rgba(65,130,255,0.18); }
 .search-btn:active { transform: scale(0.87); }
-
-/* Map container — ID: #map-container */
+ 
+/* ── Map container — clean, airy ── */
 #map-container {
   height: 220px;
-  background: rgba(6,11,22,0.82);
+  background: #eef2f8;
   border-radius: var(--r-lg);
   overflow: hidden;
   position: relative;
-  border: 0.5px solid rgba(255,255,255,0.068);
-  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.05);
 }
-
-/* Map grid placeholder */
+ 
+/* Map grid placeholder — light blue toned */
 .map-placeholder {
   position: absolute;
   inset: 0;
@@ -1518,37 +1587,104 @@ body.template-mode .scan-corner-bl {
   justify-content: center;
   gap: var(--sp-3);
   background-image:
-    linear-gradient(rgba(0,212,255,0.036) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,212,255,0.036) 1px, transparent 1px);
-  background-size: 30px 30px;
+    linear-gradient(rgba(65,130,255,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(65,130,255,0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-color: #eef2f8;
+  animation: mapGridDrift 20s linear infinite;
 }
-
+ 
 .map-placeholder p {
+  font-family: var(--font-sans);
   font-size: var(--t-xs);
-  color: rgba(200,220,255,0.38);
+  color: rgba(30,60,120,0.50);
   font-style: italic;
 }
-
-/* Animated location pin */
+ 
+/* Location pin */
 .map-pin {
   font-size: 2.1rem;
   animation: pinFloat 2.2s ease-in-out infinite alternate;
-  filter: drop-shadow(0 0 12px rgba(255,79,94,0.5));
+  filter: drop-shadow(0 2px 8px rgba(65,130,255,0.35));
 }
-
-/* POI list — ID: #poi-list */
+ 
+/* ── POI list — clean card style ── */
 #poi-list {
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
 }
-
+ 
+/* POI item — light card */
+.poi-item {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: var(--r-md);
+  padding: var(--sp-3) var(--sp-4);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition:
+    box-shadow var(--dur-fast) var(--ease-snappy),
+    border-color var(--dur-fast),
+    transform var(--dur-fast) var(--ease-bounce);
+  font-family: var(--font-sans);
+  color: #1a1a1a;
+}
+ 
+.poi-item:hover {
+  box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+  border-color: rgba(65,130,255,0.22);
+  transform: translateY(-1px);
+}
+ 
+/* Placeholder text */
 .placeholder-text {
+  font-family: var(--font-sans);
   font-size: var(--t-sm);
-  color: rgba(200,220,255,0.28);
+  color: rgba(0,0,0,0.36);
   text-align: center;
   padding: var(--sp-6);
   font-style: italic;
+}
+
+/* Force explore page header icon / emoji to render dark (not white/glowing) */
+#explore-page .page-header {
+  /* Dark text context */
+  color: #1a1a1a;
+}
+ 
+/* The back arrow itself */
+#explore-page .back-btn {
+  color: #111;
+}
+ 
+/* The page title gradient (overrides the white gradient from .page-header h2) */
+#explore-page .page-header h2 {
+  background: linear-gradient(135deg, #0a0a0a 0%, #333 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+}
+
+#explore-page .card {
+  background: #ffffff;
+  border-color: rgba(0,0,0,0.09);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
+  color: #1a1a1a;
+}
+ 
+#explore-page .card h3 {
+  color: #0f0f0f;
+}
+ 
+#explore-page .card:hover {
+  border-color: rgba(65,130,255,0.24);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+  transform: translateY(-2px);
 }
 
 /* ─── §18  PROFILE PAGE ──────────────────────────────────────────────────── */

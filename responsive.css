@@ -337,7 +337,7 @@
     padding-right: var(--sp-10);
   }
 
-  #nav-bar { max-width: 480px; }
+
 
   /* Three-col profile grid on laptop */
   .profile-grid {
@@ -388,7 +388,7 @@
     padding-right: var(--sp-12);
   }
 
-  #nav-bar { max-width: 500px; }
+
 
   /* More pronounced hover states on desktop */
   .card:hover {
@@ -418,7 +418,7 @@
 
   .status-bar { max-width: 1000px; }
   .page { max-width: 640px; }
-  #nav-bar { max-width: 520px; }
+ 
 
   /* Larger background canvas particles at high res */
   #bg-canvas { opacity: 0.52; }
@@ -695,7 +695,7 @@
 
   .status-bar { max-width: 1100px; }
   .page { max-width: 720px; }
-  #nav-bar { max-width: 560px; }
+  
 
   /* Background particle canvas more visible at large scale */
   #bg-canvas { opacity: 0.55; }
@@ -830,39 +830,55 @@
 
   .card { margin-bottom: var(--sp-3); }
 }
-/* ─── §25  DESKTOP CAMERA UI — re-centre overlays ─────────────────────── */
+/* ─── §25  DESKTOP & TABLET CAMERA UI ─────────────────────────────────── */
+
+/* Tablet+ (768px+): fix sidebar width — never override the core 240px */
+@media screen and (min-width: 768px) {
+  /* Sidebar stays 240px as defined in core.css — DO NOT set width here */
+  /* Sidebar toggle stays top-left; no repositioning needed */
+}
+
+/* Laptop (1024px+): Camera fullscreen, overlays centred */
 @media screen and (min-width: 1024px) {
+  /* Gemini bar — centred, slightly larger */
   .gemini-bar {
     width: min(560px, calc(100vw - 48px));
     height: 62px;
     bottom: 32px;
+    /* Ensure centering is always maintained */
+    left: 50%;
+    transform: translateX(-50%);
   }
 
+  /* Sidebar toggle — always top-left, never repositioned by percentage */
   .sidebar-toggle {
-    left: calc(50% - 580px);
+    left: calc(var(--safe-left) + var(--sp-4));
   }
 
+  /* Compass — bottom-right, clear of gemini bar */
   #compass-ring {
-    right: max(24px, calc(50% - 580px));
+    width: 96px;
+    height: 96px;
+    right: calc(var(--safe-right) + var(--sp-6));
+    bottom: calc(100px + var(--safe-bottom));
   }
 }
 
+/* Large desktop (1280px+) */
 @media screen and (min-width: 1280px) {
-  .gemini-bar { bottom: 36px; }
-
-  .sidebar-toggle {
-    left: calc(50% - 640px);
+  .gemini-bar {
+    bottom: 36px;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
   #compass-ring {
-    right: max(24px, calc(50% - 640px));
+    right: calc(var(--safe-right) + var(--sp-8));
+    bottom: 110px;
   }
 }
 
-/* On large screens, sidebar can be wider */
-@media screen and (min-width: 768px) {
-  #nav-bar { width: 280px; }
-}
+
 
 /* On mobile, Gemini bar is full-width minus margin */
 @media screen and (max-width: 479px) {
@@ -893,5 +909,7 @@
     height: 50px;
     bottom: calc(8px + var(--safe-bottom));
     width: min(420px, calc(100vw - 120px));
+    left: 50%;
+    transform: translateX(-50%);
   }
 }
