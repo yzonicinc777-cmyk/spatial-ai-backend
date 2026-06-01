@@ -390,36 +390,6 @@
 
   #nav-bar { max-width: 500px; }
 
-  .fab-container {
-    right: calc(50% - 340px);
-  }
-
-  /* +++ ADD THIS: Center camera page overlays on large screens +++ */
-  .quick-actions {
-    left: 50% !important;
-    transform: translateX(-50%);
-    width: auto;
-  }
-
-  #voice-bar {
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%);
-    width: 540px;
-  }
-
-  /* Keep compass ring on right but pull inward */
-  #compass-ring {
-    right: max(24px, calc((100% - 1200px) / 2 + 24px));
-  }
-
-  /* Override FAB positioning to stay near centered content */
-  .fab-container {
-    right: max(24px, calc((100% - 1200px) / 2 + 24px));
-    left: auto;
-  }
-  /* +++ END ADD +++ */
-
   /* More pronounced hover states on desktop */
   .card:hover {
     transform: translateY(-3px);
@@ -859,4 +829,69 @@
   .setting-item { padding: var(--sp-3) 0; }
 
   .card { margin-bottom: var(--sp-3); }
+}
+/* ─── §25  DESKTOP CAMERA UI — re-centre overlays ─────────────────────── */
+@media screen and (min-width: 1024px) {
+  .gemini-bar {
+    width: min(560px, calc(100vw - 48px));
+    height: 62px;
+    bottom: 32px;
+  }
+
+  .sidebar-toggle {
+    left: calc(50% - 580px);
+  }
+
+  #compass-ring {
+    right: max(24px, calc(50% - 580px));
+  }
+}
+
+@media screen and (min-width: 1280px) {
+  .gemini-bar { bottom: 36px; }
+
+  .sidebar-toggle {
+    left: calc(50% - 640px);
+  }
+
+  #compass-ring {
+    right: max(24px, calc(50% - 640px));
+  }
+}
+
+/* On large screens, sidebar can be wider */
+@media screen and (min-width: 768px) {
+  #nav-bar { width: 280px; }
+}
+
+/* On mobile, Gemini bar is full-width minus margin */
+@media screen and (max-width: 479px) {
+  .gemini-bar {
+    height: 54px;
+    bottom: calc(12px + var(--safe-bottom));
+    padding: 0 8px;
+    gap: 6px;
+  }
+
+  .gemini-plus-btn,
+  .gemini-mic-btn { width: 32px; height: 32px; }
+
+  .gemini-fab { width: 38px; height: 38px; }
+
+  #voice-text { font-size: var(--t-xs); }
+}
+
+/* Tiny screens */
+@media screen and (max-width: 359px) {
+  .gemini-bar { height: 50px; bottom: calc(8px + var(--safe-bottom)); }
+  .sidebar-toggle { left: 8px; }
+}
+
+/* Phone landscape — make bar smaller */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .gemini-bar {
+    height: 50px;
+    bottom: calc(8px + var(--safe-bottom));
+    width: min(420px, calc(100vw - 120px));
+  }
 }

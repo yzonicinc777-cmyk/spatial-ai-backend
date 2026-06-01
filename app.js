@@ -23,31 +23,22 @@
 
 import init, { configure, set_template, detect_template } from './pkg/spatial_explorer_core.js';
 
-import { initDOM, refs, refList }              from './js/dom.js';
-import { getState, setState, subscribe }       from './js/state.js';
-import {
-  initBackground, initClock,
-  hideSplash, scheduleSplashHide,
-  updateStatus, showToast,
-  navigateTo, bindStateToUI,
-  openModal, closeModal,
-  addRippleEffect,
-}                                              from './js/ui.js';
-import { initCompass, initGPS, initBattery, initNetwork } from './js/sensor.js';
-import { initVoice, toggleListening }         from './js/voice.js';
-import {
-  initCamera, toggleFlashlight,
-  captureRegion, captureCentre,
-  eventToVideoCoords, bindCompassRing,
-}                                             from './js/camera.js';
-import {
-  initDetectionWorker,
-  enterTemplateMode, clearTemplate, setTemplate,
-}                                             from './js/detection.js';
-import {
-  loadSettings, loadTemplatesFromDB, saveSetting,
-}                                             from './js/storage.js';
-import { setSavedTemplates }                  from './js/state.js';
+import { initDOM, refs, refList, getState, setState,
+         setSavedTemplates, loadSettings, loadTemplatesFromDB,
+         saveSetting }                         from './js/core.js';
+import { initNetwork, initBattery, initGPS, initCompass,
+         initDetectionWorker, enterTemplateMode, clearTemplate, setTemplate,
+         initVoice, toggleListening,
+         setDetectionDrawCallbacks, setVoiceCameraCallbacks,
+         getFrameSender }                      from './js/engine.js';
+import { initBackground, initClock, hideSplash, scheduleSplashHide,
+         updateStatus, showToast, navigateTo, bindStateToUI,
+         openModal, closeModal, addRippleEffect,
+         initCamera, toggleFlashlight, captureRegion, captureCentre,
+         eventToVideoCoords, bindCompassRing,
+         setFrameCallback,
+         drawMatches, clearOverlay, hideDetectionBox,
+         positionDetectionBox }                from './js/render.js';
 
 // ─── Service Worker ──────────────────────────────────────────────────────────
 
@@ -142,17 +133,15 @@ async function start() {
   _bindEvents();
 
   // ── 10. Camera on first gesture ───────────────────────────────────────────
-  updateStatus('Tap anywhere to start camera');
-
-  const _startCamera = async () => {
+  // Auto-start camera immediately without waiting for gesture
+  (async () => {
     await initCamera();
     initDetectionWorker();
-    // iOS compass permission piggybacks the same gesture
+    setFrameCallback(getFrameSender());
+    setDetectionDrawCallbacks({ drawMatches, clearOverlay, hideDetectionBox, positionDetectionBox });
+    setVoiceCameraCallbacks({ captureCentre, toggleFlashlight });
     await initCompass(() => updateStatus('Compass permission denied', 'warn'));
-  };
-
-  document.body.addEventListener('click',    _startCamera, { once: true });
-  document.body.addEventListener('touchend', _startCamera, { once: true });
+  })();
 }
 
 // ─── Settings restoration ────────────────────────────────────────────────────
@@ -189,7 +178,7 @@ function _bindEvents() {
   refs('scanBtn')?.addEventListener('click', async () => {
     const imgData = captureCentre();
     if (imgData) await setTemplate(imgData);
-    showToast('Scanning centre…');
+
   });
 
   refs('setTemplateBtn')?.addEventListener('click', enterTemplateMode);
@@ -217,7 +206,7 @@ function _bindEvents() {
     navigateTo('camera');
     const imgData = captureCentre();
     if (imgData) await setTemplate(imgData);
-    showToast('AI Lens activated — centre scanned');
+    
     if (navigator.vibrate) navigator.vibrate([20, 20, 20]);
   });
 
@@ -293,6 +282,71 @@ function _bindEvents() {
     poi.innerHTML = q
       ? `<p class="placeholder-text">🔍 Searching for "<em>${_escape(q)}</em>"…</p>`
       : '<p class="placeholder-text">Nearby places will appear here</p>';
+  });
+
+  // ── Sidebar toggle ─────────────────────────────────────────────────────────
+  const sidebarToggle   = document.getElementById('sidebar-toggle');
+  const sidebarClose    = document.getElementById('sidebar-close');
+  const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+  const sidebar         = refs('navBar');  // #nav-bar
+
+  const openSidebar  = () => {
+    sidebar?.classList.add('open');
+    sidebarBackdrop?.classList.add('open');
+    sidebarToggle?.setAttribute('aria-expanded', 'true');
+    sidebar?.setAttribute('aria-hidden', 'false');
+  };
+  const closeSidebar = () => {
+    sidebar?.classList.remove('open');
+    sidebarBackdrop?.classList.remove('open');
+    sidebarToggle?.setAttribute('aria-expanded', 'false');
+    sidebar?.setAttribute('aria-hidden', 'true');
+  };
+
+  sidebarToggle?.addEventListener('click',   openSidebar);
+  sidebarClose?.addEventListener('click',    closeSidebar);
+  sidebarBackdrop?.addEventListener('click', closeSidebar);
+
+  // Close sidebar when a nav item is chosen
+  for (const btn of refList('navBtns')) {
+    btn.addEventListener('click', closeSidebar);
+  }
+
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSidebar();
+  });
+
+  // ── Gemini + menu toggle ───────────────────────────────────────────────────
+  const plusBtn  = document.getElementById('gemini-plus-btn');
+  const plusMenu = document.getElementById('gemini-menu');
+
+  const openMenu  = () => {
+    plusBtn?.classList.add('open');
+    plusMenu?.classList.add('open');
+    plusBtn?.setAttribute('aria-expanded', 'true');
+    plusMenu?.setAttribute('aria-hidden', 'false');
+  };
+  const closeMenu = () => {
+    plusBtn?.classList.remove('open');
+    plusMenu?.classList.remove('open');
+    plusBtn?.setAttribute('aria-expanded', 'false');
+    plusMenu?.setAttribute('aria-hidden', 'true');
+  };
+
+  plusBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    plusMenu?.classList.contains('open') ? closeMenu() : openMenu();
+  });
+
+  // Close menu when any menu item is clicked
+  plusMenu?.querySelectorAll('.gemini-menu-item').forEach(item => {
+    item.addEventListener('click', closeMenu);
+  });
+
+  // Close menu on outside click
+  document.addEventListener('click', (e) => {
+    if (!plusBtn?.contains(e.target) && !plusMenu?.contains(e.target)) closeMenu();
   });
 }
 

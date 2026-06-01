@@ -160,27 +160,60 @@
           </div>
         </div>
 
-        <!-- Voice Command Bar -->
-        <div class="voice-command-bar" id="voice-bar" role="region" aria-label="Voice control">
-          <div class="voice-input-container">
-            <button id="mic-btn" class="mic-btn" aria-label="Activate voice command" aria-pressed="false">
-              <span class="mic-icon" aria-hidden="true">🎤</span>
-            </button>
-            <div class="voice-text" id="voice-text" aria-live="polite" aria-atomic="true">
-              Say "find red shoes near me"
-            </div>
-          </div>
-          <div class="voice-wave" id="voice-wave" aria-hidden="true">
-            <span></span><span></span><span></span><span></span><span></span>
-          </div>
-        </div>
+        <!-- Gemini-style Input Bar -->
+<div class="gemini-bar" id="voice-bar" role="region" aria-label="Controls">
+  <!-- + menu button -->
+  <div class="gemini-plus-wrap">
+    <button class="gemini-plus-btn" id="gemini-plus-btn" aria-label="More options" aria-expanded="false">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <line x1="10" y1="3" x2="10" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <!-- Popover menu -->
+    <div class="gemini-menu" id="gemini-menu" aria-hidden="true">
+      <button class="gemini-menu-item" id="scanBtn" aria-label="Scan centre of frame">
+        <span class="gmi-icon">🔍</span><span>Scan</span>
+      </button>
+      <button class="gemini-menu-item" id="setTemplateBtn" aria-label="Set detection template">
+        <span class="gmi-icon">✦</span><span>Template</span>
+      </button>
+      <button class="gemini-menu-item" id="flashlightBtn" aria-label="Toggle flashlight">
+        <span class="gmi-icon">💡</span><span>Light</span>
+      </button>
+    </div>
+  </div>
 
-        <!-- Quick Actions -->
-        <div class="quick-actions" role="toolbar" aria-label="Quick actions">
-          <button class="quick-action-btn" id="scanBtn"        aria-label="Scan center of frame">🔍 Scan</button>
-          <button class="quick-action-btn" id="setTemplateBtn" aria-label="Set detection template">✦ Template</button>
-          <button class="quick-action-btn" id="flashlightBtn"  aria-label="Toggle flashlight">💡 Light</button>
-        </div>
+  <!-- Mic / transcript area -->
+  <button id="mic-btn" class="gemini-mic-btn" aria-label="Activate voice command" aria-pressed="false">
+    <span class="mic-icon" aria-hidden="true">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="9" y="2" width="6" height="13" rx="3" fill="currentColor"/>
+        <path d="M5 10a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <line x1="12" y1="20" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </span>
+  </button>
+
+  <div class="gemini-text-area">
+    <div class="voice-text" id="voice-text" aria-live="polite" aria-atomic="true">
+      Say "find red shoes near me"
+    </div>
+    <div class="voice-wave" id="voice-wave" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <!-- FAB merged into bar -->
+  <button class="gemini-fab" id="ai-lens-fab" aria-label="AI Lens — scan centre of frame">
+    <span class="fab-inner" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" fill="currentColor"/>
+      </svg>
+    </span>
+  </button>
+</div>
+
       </section>
 
       <!-- Explore Page -->
@@ -276,31 +309,41 @@
 
     </main>
 
-    <!-- ── Bottom Nav ── -->
-    <nav class="bottom-nav" id="nav-bar" aria-label="Main navigation">
-      <button class="nav-btn active-nav" data-page="camera" aria-label="Camera" aria-current="page">
-        <span class="nav-icon" aria-hidden="true">📷</span>
-        <span class="nav-label">Camera</span>
-        <span class="nav-ripple" aria-hidden="true"></span>
-      </button>
-      <button class="nav-btn" data-page="explore" aria-label="Explore nearby">
-        <span class="nav-icon" aria-hidden="true">🗺</span>
-        <span class="nav-label">Explore</span>
-        <span class="nav-ripple" aria-hidden="true"></span>
-      </button>
-      <button class="nav-btn" data-page="profile" aria-label="Profile and settings">
-        <span class="nav-icon" aria-hidden="true">👤</span>
-        <span class="nav-label">Profile</span>
-        <span class="nav-ripple" aria-hidden="true"></span>
-      </button>
-    </nav>
+    <!-- ── Sidebar Toggle Button ── -->
+<button class="sidebar-toggle" id="sidebar-toggle" aria-label="Open navigation" aria-expanded="false">
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+    <rect y="2" width="18" height="2" rx="1" fill="currentColor"/>
+    <rect y="8" width="18" height="2" rx="1" fill="currentColor"/>
+    <rect y="14" width="18" height="2" rx="1" fill="currentColor"/>
+  </svg>
+</button>
 
-    <!-- ── FAB ── -->
-    <div class="fab-container">
-      <button class="fab" id="ai-lens-fab" aria-label="AI Lens — scan centre of frame">
-        <span class="fab-inner" aria-hidden="true">⚡</span>
-      </button>
-    </div>
+<!-- ── Sidebar ── -->
+<nav class="sidebar" id="nav-bar" aria-label="Main navigation" aria-hidden="true">
+  <div class="sidebar-header">
+    <span class="sidebar-title">Navigate</span>
+    <button class="sidebar-close" id="sidebar-close" aria-label="Close navigation">✕</button>
+  </div>
+  <button class="nav-btn active-nav" data-page="camera" aria-label="Camera" aria-current="page">
+    <span class="nav-icon" aria-hidden="true">📷</span>
+    <span class="nav-label">Camera</span>
+    <span class="nav-ripple" aria-hidden="true"></span>
+  </button>
+  <button class="nav-btn" data-page="explore" aria-label="Explore nearby">
+    <span class="nav-icon" aria-hidden="true">🗺</span>
+    <span class="nav-label">Explore</span>
+    <span class="nav-ripple" aria-hidden="true"></span>
+  </button>
+  <button class="nav-btn" data-page="profile" aria-label="Profile and settings">
+    <span class="nav-icon" aria-hidden="true">👤</span>
+    <span class="nav-label">Profile</span>
+    <span class="nav-ripple" aria-hidden="true"></span>
+  </button>
+</nav>
+<!-- Sidebar backdrop -->
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+  
 
     <!-- ── Toasts ── -->
     <div id="toast-container" class="toast-container" role="alert" aria-live="assertive" aria-atomic="true"></div>
