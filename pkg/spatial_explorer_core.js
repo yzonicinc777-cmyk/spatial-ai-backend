@@ -1,6 +1,8 @@
 /* @ts-self-types="./spatial_explorer_core.d.ts" */
 
 /**
+ * Configure the detection engine from a JSON string matching `DetectionConfig`.
+ * Unknown fields are silently ignored; missing fields use current values as defaults.
  * @param {string} json
  */
 export function configure(json) {
@@ -20,6 +22,8 @@ export function configure(json) {
 }
 
 /**
+ * Run detection on a frame (raw RGBA, row-major).
+ * Returns a JSON string containing a `DetectionResult`.
  * @param {Uint8Array} data
  * @param {number} img_w
  * @param {number} img_h
@@ -44,11 +48,102 @@ export function detect_template(data, img_w, img_h) {
     }
 }
 
+/**
+ * Return the current config as JSON (useful for inspector panels).
+ * @returns {string}
+ */
+export function get_config() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        wasm.get_config(retptr);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        deferred1_0 = r0;
+        deferred1_1 = r1;
+        return getStringFromWasm0(r0, r1);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_export(deferred1_0, deferred1_1, 1);
+    }
+}
+
+/**
+ * Return a diagnostics snapshot as JSON.
+ * @returns {string}
+ */
+export function get_diagnostics() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        wasm.get_diagnostics(retptr);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        deferred1_0 = r0;
+        deferred1_1 = r1;
+        return getStringFromWasm0(r0, r1);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_export(deferred1_0, deferred1_1, 1);
+    }
+}
+
+/**
+ * Return trajectory data for all confirmed trackers as JSON.
+ * @returns {string}
+ */
+export function get_trajectories() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        wasm.get_trajectories(retptr);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        deferred1_0 = r0;
+        deferred1_1 = r1;
+        return getStringFromWasm0(r0, r1);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_export(deferred1_0, deferred1_1, 1);
+    }
+}
+
+/**
+ * Returns true if a template is currently loaded.
+ * @returns {boolean}
+ */
+export function has_template() {
+    const ret = wasm.has_template();
+    return ret !== 0;
+}
+
 export function main() {
     wasm.main();
 }
 
 /**
+ * Reset engine state: clears template, trackers, and frame counter.
+ */
+export function reset() {
+    wasm.reset();
+}
+
+/**
+ * Convenience setter for fusion weights without a full reconfigure.
+ * @param {number} ncc
+ * @param {number} hog
+ * @param {number} hist
+ */
+export function set_fusion_weights(ncc, hog, hist) {
+    wasm.set_fusion_weights(ncc, hog, hist);
+}
+
+/**
+ * Load and precompute a template from raw RGBA pixel data.
+ * Clears all existing trackers.
  * @param {Uint8Array} data
  * @param {number} width
  * @param {number} height
@@ -75,6 +170,10 @@ function __wbg_get_imports() {
         __wbg_new_227d7c05414eb861: function() {
             const ret = new Error();
             return addHeapObject(ret);
+        },
+        __wbg_now_0c6f637fb634a735: function() {
+            const ret = performance.now();
+            return ret;
         },
         __wbg_stack_3b0d974bbf31e44f: function(arg0, arg1) {
             const ret = getObject(arg1).stack;

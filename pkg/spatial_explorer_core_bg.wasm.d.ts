@@ -3,8 +3,14 @@
 export const memory: WebAssembly.Memory;
 export const configure: (a: number, b: number, c: number) => void;
 export const detect_template: (a: number, b: number, c: number, d: number, e: number) => void;
+export const get_config: (a: number) => void;
+export const get_diagnostics: (a: number) => void;
+export const get_trajectories: (a: number) => void;
+export const has_template: () => number;
+export const reset: () => void;
 export const set_template: (a: number, b: number, c: number, d: number) => void;
 export const main: () => void;
+export const set_fusion_weights: (a: number, b: number, c: number) => void;
 export const __wbindgen_export: (a: number, b: number, c: number) => void;
 export const __wbindgen_export2: (a: number, b: number) => number;
 export const __wbindgen_export3: (a: number, b: number, c: number, d: number) => number;

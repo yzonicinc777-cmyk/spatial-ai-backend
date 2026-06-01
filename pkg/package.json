@@ -4,8 +4,13 @@
   "collaborators": [
     "Spatial AI Team"
   ],
-  "description": "Ultra-high-performance WASM computer vision core for Spatial AI Explorer",
-  "version": "1.0.0",
+  "description": "Ultra-high-performance WASM computer-vision & tracking core for Spatial AI Explorer",
+  "version": "2.0.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spatial-ai/explorer"
+  },
   "files": [
     "spatial_explorer_core_bg.wasm",
     "spatial_explorer_core.js",

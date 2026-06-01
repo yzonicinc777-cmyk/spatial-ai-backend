@@ -561,7 +561,7 @@ body::before {
 
 /* On desktop, the centre status indicator is secondary — reduce visual weight */
 @media screen and (min-width: 1024px) {
-  .status-center { opacity: 0.55; }
+  #status-text { display: none; }
 }
 
 /* Clock — ID: #clock, set by ui.js initClock() */
@@ -1456,8 +1456,8 @@ body.template-mode .scan-corner-bl {
   /* Override the deep-space base for this page only */
   background:
     radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99,163,255,0.06) 0%, transparent 60%),
-    #f7f5f2;
-  color: #1a1a1a;
+    hsla(36, 24%, 96%, 0.922);
+  color: hsl(52, 75%, 84%);
 }
  
 /* ── Page header — dark text on light background ── */
