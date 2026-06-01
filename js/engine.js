@@ -379,7 +379,7 @@ export function initVoice() {
   _rec.onstart  = _onStart;
   _rec.onend    = _onEnd;
   _rec.onerror  = _onError;
-  _rec.onresult = _onResult;
+  _rec.onresult = _onVoiceResult;
 }
 
 // ── Session control ───────────────────────────────────────────────────────────
@@ -441,7 +441,7 @@ function _onError(e) {
   }
 }
 
-function _onResult(e) {
+function _onVoiceResult(e) {
   let interim = '';
   for (let i = e.resultIndex; i < e.results.length; i++) {
     const t = e.results[i][0].transcript;
