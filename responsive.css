@@ -41,7 +41,7 @@
 /* Galaxy Fold closed face, iPhone SE 1st gen (320px), very small screens */
 @media screen and (max-width: 359px) {
   :root {
-    --status-h:   50px;
+    --status-h:   0px;
     --nav-h:      62px;
     --nav-bottom: 8px;
     --fab-size:   50px;
@@ -110,7 +110,7 @@
 /* Covers: Galaxy S22, Pixel 7, Galaxy A series, iPhone 13 Mini */
 @media screen and (min-width: 360px) and (max-width: 479px) {
   :root {
-    --status-h:   56px;
+    --status-h:   0px;
     --nav-h:      70px;
     --nav-bottom: 12px;
   }
@@ -144,7 +144,7 @@
 /* Covers: iPhone 14, Pixel 7 Pro landscape, Galaxy S22+ */
 @media screen and (min-width: 480px) and (max-width: 599px) {
   :root {
-    --status-h:   58px;
+    --status-h:   0px;
     --nav-h:      72px;
     --nav-bottom: 14px;
   }
@@ -174,7 +174,7 @@
   :root {
     --nav-h:      74px;
     --nav-bottom: 16px;
-    --status-h:   58px;
+    --status-h:   0px;
   }
 
   .status-bar {
@@ -185,10 +185,8 @@
   }
 
   #nav-bar {
-    max-width: 420px;
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
+    /* Sidebar stays left-anchored — do not override left/transform */
+    width: 260px;
   }
 
   #voice-bar {
@@ -233,7 +231,7 @@
   :root {
     --nav-h:      80px;
     --nav-bottom: 22px;
-    --status-h:   60px;
+    --status-h:   0px;
     --fab-size:   62px;
   }
 
@@ -245,10 +243,7 @@
   }
 
   #nav-bar {
-    max-width: 460px;
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
+    width: 280px;
   }
 
   #voice-bar {
@@ -323,7 +318,7 @@
   :root {
     --nav-h:      76px;
     --nav-bottom: 28px;
-    --status-h:   56px;
+    --status-h:   0px;
     --fab-size:   62px;
   }
 
@@ -337,7 +332,14 @@
     padding-right: var(--sp-10);
   }
 
-
+/* Camera page: always fullscreen regardless of page max-width */
+  #camera-page {
+    max-width: none !important;
+    padding: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin: 0 !important;
+  }
 
   /* Three-col profile grid on laptop */
   .profile-grid {
@@ -377,7 +379,7 @@
   :root {
     --nav-h:      80px;
     --nav-bottom: 32px;
-    --status-h:   58px;
+    --status-h:   0px;
   }
 
   .status-bar { max-width: 900px; }
@@ -388,7 +390,13 @@
     padding-right: var(--sp-12);
   }
 
-
+#camera-page {
+    max-width: none !important;
+    padding: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin: 0 !important;
+  }
 
   /* More pronounced hover states on desktop */
   .card:hover {
@@ -411,7 +419,7 @@
 /* Covers: 1440p monitors, 4K displays, ultra-wide */
 @media screen and (min-width: 1920px) {
   :root {
-    --status-h:   62px;
+    --status-h:   0px;
     --nav-h:      84px;
     --nav-bottom: 36px;
   }
@@ -419,6 +427,10 @@
   .status-bar { max-width: 1000px; }
   .page { max-width: 640px; }
  
+  #camera-page {
+    max-width: none !important;
+    padding: 0 !important;
+  }
 
   /* Larger background canvas particles at high res */
   #bg-canvas { opacity: 0.52; }
@@ -428,7 +440,7 @@
 /* iPhone SE landscape (568×320), iPhone 14 landscape (844×390) */
 @media screen and (max-height: 500px) and (orientation: landscape) {
   :root {
-    --status-h:   42px;
+    --status-h:   0px;
     --nav-h:      52px;
     --nav-bottom: 4px;
     --fab-size:   46px;
@@ -542,7 +554,7 @@
 /* iPhone 14 Pro landscape (932×430), Pixel 7 landscape */
 @media screen and (min-height: 500px) and (max-height: 700px) and (orientation: landscape) {
   :root {
-    --status-h:   50px;
+    --status-h:   0px;
     --nav-h:      58px;
     --nav-bottom: 8px;
   }
@@ -618,7 +630,7 @@
 @media screen and (min-width: 600px) and (max-width: 740px) and (max-height: 520px) {
   /* Foldable in landscape — treat like large phone landscape */
   :root {
-    --status-h:   44px;
+    --status-h:   0px;
     --nav-h:      54px;
     --nav-bottom: 6px;
   }
@@ -687,7 +699,7 @@
 /* 2560px+ (iMac 27, LG 34 ultrawide, 4K monitors) */
 @media screen and (min-width: 2560px) {
   :root {
-    --status-h:   66px;
+    --status-h:   0px;
     --nav-h:      88px;
     --nav-bottom: 40px;
     --fab-size:   68px;

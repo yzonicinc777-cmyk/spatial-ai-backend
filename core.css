@@ -146,7 +146,7 @@
   --dur-epic:     1100ms;
 
   /* ── Layout constants ── */
-  --status-h:     58px;
+  --status-h:     0px;
   --nav-h:        0px;    /* sidebar — no bottom nav height needed */
   --nav-bottom:   0px;
 
@@ -501,36 +501,7 @@ body::before {
 /* ─── §6  STATUS BAR ─────────────────────────────────────────────────────── */
 /* Element: header.status-bar — updated by ui.js updateStatus/updateGPSBadge etc. */
 .status-bar {
-  position: fixed;
-  top: calc(10px + var(--safe-top));
-  left: calc(14px + var(--safe-left));
-  right: calc(14px + var(--safe-right));
-  height: var(--status-h);
-  z-index: var(--z-status);
-
-  /* Liquid glass pill */
-  background: rgba(6, 11, 22, 0.78);
-  backdrop-filter: blur(36px) saturate(1.9) brightness(1.08);
-  -webkit-backdrop-filter: blur(36px) saturate(1.9) brightness(1.08);
-  border-radius: var(--r-pill);
-  border: 0.5px solid rgba(255, 255, 255, 0.094);
-
-  padding: 0 var(--sp-5);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-2);
-
-  box-shadow:
-    0 2px 6px rgba(0,0,0,0.52),
-    0 8px 28px rgba(0,0,0,0.32),
-    var(--glass-inset);
-
-  animation: dropIn 0.75s var(--ease-expo) 0.2s both;
-
-  /* Prevent content overflow / layout shift */
-  overflow: hidden;
-  will-change: transform;
+  display: none !important;
 }
 
 /* Top shimmer edge */
@@ -960,7 +931,7 @@ body.template-mode .scan-corner-bl {
 #compass-ring {
   position: absolute;
   /* Position above the gemini bar (58px) with breathing room */
-  bottom: calc(88px + var(--safe-bottom));
+ bottom: calc(102px + var(--safe-bottom));
   right: calc(var(--safe-right) + var(--sp-4));
   width: 88px;
   height: 88px;
@@ -981,11 +952,11 @@ body.template-mode .scan-corner-bl {
 /* ─── §12  GEMINI-STYLE INPUT BAR ───────────────────────────────────────── */
 .gemini-bar {
   position: fixed;
-  bottom: calc(18px + var(--safe-bottom));
+  bottom: calc(20px + var(--safe-bottom));
   left: 50%;
   transform: translateX(-50%);
-  width: min(calc(100vw - 28px), 560px);
-  height: 58px;
+  width: min(calc(100vw - 24px), 680px);   /* wider, like Claude bar */
+  height: 68px;                             /* taller for easier tap */
   background: rgba(18, 28, 48, 0.88);
   backdrop-filter: blur(36px) saturate(1.8);
   -webkit-backdrop-filter: blur(36px) saturate(1.8);
@@ -994,11 +965,14 @@ body.template-mode .scan-corner-bl {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  padding: 0 10px 0 10px;
+  padding: 0 14px;
   z-index: var(--z-camera-ui);
   box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3), var(--glass-inset);
   animation: slideUp 0.65s var(--ease-expo) 0.55s forwards;
   will-change: transform;
+  /* Ensure the whole bar is clickable — no pointer-events gaps */
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 /* Listening state */
@@ -1016,8 +990,8 @@ body.template-mode .scan-corner-bl {
 }
 
 .gemini-plus-btn {
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: var(--glass-1);
   border: 0.5px solid var(--glass-border);
@@ -1110,8 +1084,8 @@ body.template-mode .scan-corner-bl {
 
 /* Mic button inside bar */
 .gemini-mic-btn {
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: var(--glass-1);
   border: 0.5px solid var(--glass-border);
@@ -1191,8 +1165,8 @@ body.template-mode .scan-corner-bl {
 
 /* FAB embedded in bar */
 .gemini-fab {
-  width: 42px;
-  height: 42px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   background: linear-gradient(135deg, #00d4ff 0%, #6a18e0 100%);
   border: 1px solid rgba(255,255,255,0.18);
@@ -1473,13 +1447,13 @@ body.template-mode .scan-corner-bl {
  
 /* Back button — dark on light */
 #explore-page .back-btn {
-  background: rgba(0,0,0,0.06);
+  background: #f9f7c1fa;
   border-color: rgba(0,0,0,0.10);
   color: #1a1a1a;
 }
  
 #explore-page .back-btn:hover {
-  background: rgba(0,0,0,0.10);
+  background: #f4f1b2f5;
   border-color: rgba(0,0,0,0.18);
   color: #000;
 }

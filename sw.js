@@ -1,59 +1,91 @@
 /**
- * sw.js — Service Worker with stale-while-revalidate strategy
- * + precaching for all shell assets.
+ * sw.js — Service Worker: stale-while-revalidate + precache.
+ * Assets inside /js/ folder are correctly pathed.
  */
 
-const CACHE      = 'spatial-ai-v3';
-const PRECACHE   = [
+const CACHE_NAME = 'spatial-ai-v4';
+
+const PRECACHE_ASSETS = [
   '/',
   '/index.html',
-  '/style.css',
+  '/core.css',
+  '/responsive.css',
+  '/animations.css',
   '/app.js',
-  '/detection.worker.js',
+  '/js/engine.js',
+  '/js/render.js',
+  '/js/core.js',
+  '/js/detection_worker.js',
   '/manifest.json',
-  '/pkg/spatial_explorer_core.js',
-  '/pkg/spatial_explorer_core_bg.wasm',
+  
 ];
 
-// Install: precache shell assets
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE)
-      .then(c => c.addAll(PRECACHE))
+// ── Install: precache shell assets ──────────────────────────────────────────
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE_ASSETS))
       .then(() => self.skipWaiting())
+      .catch((err) => console.warn('[SW] Precache failed (non-fatal):', err))
   );
 });
 
-// Activate: prune old caches
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then(keys =>
+// ── Activate: remove stale caches ────────────────────────────────────────────
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
       Promise.all(
-        keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
       )
     ).then(() => self.clients.claim())
   );
 });
 
-// Fetch: stale-while-revalidate for same-origin GETs
-self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
-  if (!e.request.url.startsWith(self.location.origin)) return;
-  // Never intercept WASM range requests (causes issues in some browsers)
-  if (e.request.url.endsWith('.wasm') && e.request.headers.has('range')) return;
+// ── Fetch: stale-while-revalidate for same-origin GETs ───────────────────────
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
 
-  e.respondWith(
-    caches.open(CACHE).then(async cache => {
-      const cached = await cache.match(e.request);
-      const fetchPromise = fetch(e.request).then(res => {
-        if (res && res.status === 200 && res.type !== 'opaque') {
-          cache.put(e.request, res.clone());
-        }
-        return res;
-      }).catch(() => cached);
+  // Only handle GET requests
+  if (request.method !== 'GET') return;
 
-      // Stale-while-revalidate: return cached immediately, update in bg
-      return cached || fetchPromise;
+  // Only intercept same-origin requests
+  if (!request.url.startsWith(self.location.origin)) return;
+
+  // Skip WASM range requests (partial content — browser handles natively)
+  if (request.url.endsWith('.wasm') && request.headers.has('range')) return;
+
+  // Skip cross-origin API calls (OSM, Nominatim, etc.)
+  const url = new URL(request.url);
+  if (url.hostname !== self.location.hostname) return;
+
+  event.respondWith(
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const cached = await cache.match(request);
+
+      const networkFetch = fetch(request)
+        .then((networkResponse) => {
+          if (
+            networkResponse &&
+            networkResponse.status === 200 &&
+            networkResponse.type !== 'opaque'
+          ) {
+            cache.put(request, networkResponse.clone());
+          }
+          return networkResponse;
+        })
+        .catch(() => cached); // network failed → fall back to cache
+
+      // Stale-while-revalidate: serve cache instantly, revalidate in background
+      return cached ?? networkFetch;
     })
   );
+});
+
+// ── Message: force update from app ───────────────────────────────────────────
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
