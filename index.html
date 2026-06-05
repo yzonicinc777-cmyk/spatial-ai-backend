@@ -1421,6 +1421,7 @@ section { position: relative; overflow: hidden; }
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
     const id = a.getAttribute('href').slice(1);
+    if (!id) { e.preventDefault(); return; } // ← ADD THIS LINE to stop bare # jumps
     const target = document.getElementById(id);
     if (target) {
       e.preventDefault();
