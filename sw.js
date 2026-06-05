@@ -113,28 +113,19 @@ self.addEventListener('fetch', (event) => {
     caches.open(CACHE_NAME).then(async (cache) => {
       const cached = await cache.match(request);
 
-      // Build a fetch promise that follows redirects.
-      //
-      // IMPORTANT: mode:'navigate' cannot be set in the Request constructor —
-      // only the browser itself can create navigate-mode requests. Passing it
-      // throws "Cannot construct a Request with a RequestInit whose mode member
-      // is set as 'navigate'".
-      //
-      // Fix: for navigate requests pass the original request object directly to
-      // fetch() (browser handles it correctly); for all other GET requests
-      // construct a new Request with redirect:'follow' + mode:'same-origin' so
-      // Cloudflare Worker redirects are followed and the response is cacheable.
-      const networkFetch = (
-        request.mode === 'navigate'
-          ? fetch(request)                             // let the browser own nav requests
-          : fetch(new Request(request.url, {
-              method:      request.method,
-              headers:     request.headers,
-              redirect:    'follow',
-              credentials: 'same-origin',
-              mode:        'same-origin',
-            }))
-      )
+      // Build a new request that explicitly follows redirects
+      // This is the key fix: without this, a Cloudflare Worker redirect
+      // produces a response with type:'opaqueredirect' which the Cache
+      // API and the browser both reject with the "redirect mode" error.
+      const freshRequest = new Request(request.url, {
+        method:      request.method,
+        headers:     request.headers,
+        redirect:    'follow',          // ← THE FIX
+        credentials: 'same-origin',
+        mode:        request.mode === 'navigate' ? 'navigate' : 'same-origin',
+      });
+
+      const networkFetch = fetch(freshRequest)
         .then((networkResponse) => {
           if (
             networkResponse &&
