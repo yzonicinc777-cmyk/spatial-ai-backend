@@ -83,21 +83,25 @@ self.addEventListener('fetch', (event) => {
   // redirect to index.html so the landing page always shows first.
   if (request.mode === 'navigate') {
     const path = url.pathname;
-    // Bare / → index.html
-    
-   if (path === '/' || path === '') {
-  event.respondWith(Response.redirect('/index.html', 302));
-  return;
-}
-// For all other navigations (including /explorer.html), let the page load normally.
-// The inline guard script in explorer.html handles the session check.
-return;
-    // Always redirect top-level navigations to explorer.html back to index.html.
+
+    // Bare / → always show index.html (landing page)
+    if (path === '/' || path === '') {
+      event.respondWith(Response.redirect('/index.html', 302));
+      return;
+    }
+
+    // Direct navigation to explorer.html (e.g. typed URL, PWA cold-launch,
+    // stale shortcut) → bounce to index.html first.
     // The inline <script> guard in explorer.html uses sessionStorage 'sai_launched'
-    // (set by index.html CTA clicks) to allow entry — referrer-based checks are
-    // unreliable in PWA cold-launches and cached navigations, so the SW always
-    // bounces here and lets the page script decide.
-    
+    // (set by index.html CTA clicks) to allow entry on subsequent visits within
+    // the same session, but the SW acts as the first line of defence for cold loads.
+    if (path.endsWith('/explorer.html') || path === '/explorer.html') {
+      event.respondWith(Response.redirect('/index.html', 302));
+      return;
+    }
+
+    // All other navigations load normally
+    return;
   }
   // ─────────────────────────────────────────────────────────────
 
