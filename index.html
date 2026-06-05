@@ -1445,13 +1445,9 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   // 'sai_goto_explorer' will be set. In that case they already passed
   // through the landing page previously in this session — let them
   // go straight back to explorer.html without re-reading the landing page.
-  if (sessionStorage.getItem('sai_goto_explorer')) {
-    sessionStorage.removeItem('sai_goto_explorer');
-    sessionStorage.setItem('sai_launched', '1');
-    location.replace('explorer.html');
-    return;
-  }
-
+ // Just clean up the stale flag, never auto-forward from index.html
+sessionStorage.removeItem('sai_goto_explorer');
+sessionStorage.removeItem('sai_launched');
   // Tag all links pointing to explorer.html so clicking them marks the session
   document.querySelectorAll('a[href="explorer.html"]').forEach(function (link) {
     link.addEventListener('click', function () {

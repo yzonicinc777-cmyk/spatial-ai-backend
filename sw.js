@@ -93,10 +93,7 @@ self.addEventListener('fetch', (event) => {
     // (set by index.html CTA clicks) to allow entry — referrer-based checks are
     // unreliable in PWA cold-launches and cached navigations, so the SW always
     // bounces here and lets the page script decide.
-    if (path === '/explorer.html') {
-      event.respondWith(Response.redirect('/index.html', 302));
-      return;
-    }
+    
   }
   // ─────────────────────────────────────────────────────────────
 
