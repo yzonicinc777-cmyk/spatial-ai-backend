@@ -45,7 +45,33 @@ import { initBackground, initClock, hideSplash, scheduleSplashHide,
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
+      .then((reg) => {
+        // Poll for updates every 60 s (catches deploys while the tab is open)
+        setInterval(() => reg.update(), 60_000);
+
+        // A new SW finished installing — activate it straight away
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          if (!newSW) return;
+
+          newSW.addEventListener('statechange', () => {
+            if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+              // New version ready — tell it to skip waiting, then reload
+              newSW.postMessage({ type: 'SKIP_WAITING' });
+            }
+          });
+        });
+      })
       .catch(err => console.warn('[app] SW registration failed:', err));
+
+    // When the SW controller changes (after SKIP_WAITING), reload to get fresh assets
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
   });
 }
 

@@ -1,11 +1,20 @@
 /**
  * sw.js — Service Worker: stale-while-revalidate + precache.
- * Assets inside /js/ folder are correctly pathed.
+ *
+ * AUTO-UPDATE: CACHE_NAME is injected at deploy time by GitHub Actions.
+ * Every push to main bumps the cache version → browsers auto-update
+ * without needing a manual cache clear.
+ *
+ * If DEPLOY_TIMESTAMP is not replaced (local dev), falls back to a
+ * fixed string so local dev still works.
  */
 
-const CACHE_NAME = 'spatial-ai-v6';
+// ⚠️  GitHub Actions replaces __DEPLOY_TIMESTAMP__ with the actual
+//     timestamp (e.g. 20250611-143022) on every push.
+//     See .github/workflows/deploy.yml
+const CACHE_NAME = 'spatial-ai-__DEPLOY_TIMESTAMP__';
 
-  const PRECACHE_ASSETS = [
+const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/explorer.html',
@@ -18,7 +27,6 @@ const CACHE_NAME = 'spatial-ai-v6';
   '/js/core.js',
   '/js/detection_worker.js',
   '/manifest.json',
-  
 ];
 
 // ── Install: precache shell assets ──────────────────────────────────────────
@@ -26,21 +34,24 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(PRECACHE_ASSETS))
-      .then(() => self.skipWaiting())
+      .then(() => self.skipWaiting())   // activate immediately — don't wait for old tab to close
       .catch((err) => console.warn('[SW] Precache failed (non-fatal):', err))
   );
 });
 
-// ── Activate: remove stale caches ────────────────────────────────────────────
+// ── Activate: remove ALL stale caches from previous versions ─────────────────
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
         keys
           .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
+          .map((key) => {
+            console.log('[SW] Removing old cache:', key);
+            return caches.delete(key);
+          })
       )
-    ).then(() => self.clients.claim())
+    ).then(() => self.clients.claim())  // take control of all open pages immediately
   );
 });
 
@@ -48,16 +59,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
-  // Only handle GET requests
   if (request.method !== 'GET') return;
-
-  // Only intercept same-origin requests
   if (!request.url.startsWith(self.location.origin)) return;
-
-  // Skip WASM range requests (partial content — browser handles natively)
   if (request.url.endsWith('.wasm') && request.headers.has('range')) return;
 
-  // Skip cross-origin API calls (OSM, Nominatim, etc.)
   const url = new URL(request.url);
   if (url.hostname !== self.location.hostname) return;
 
@@ -76,15 +81,14 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResponse;
         })
-        .catch(() => cached); // network failed → fall back to cache
+        .catch(() => cached);
 
-      // Stale-while-revalidate: serve cache instantly, revalidate in background
       return cached ?? networkFetch;
     })
   );
 });
 
-// ── Message: force update from app ───────────────────────────────────────────
+// ── Message: notify all open clients when a new SW is waiting ─────────────────
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
