@@ -88,11 +88,12 @@ self.addEventListener('fetch', (event) => {
       event.respondWith(Response.redirect('/index.html', 302));
       return;
     }
-    // Direct hit on explorer.html with NO referrer from same origin
-    // means the user launched the PWA or typed the URL directly.
-    const ref = request.referrer ? new URL(request.referrer) : null;
-    const cameFromSite = ref && ref.origin === self.location.origin;
-    if (path === '/explorer.html' && !cameFromSite) {
+    // Always redirect top-level navigations to explorer.html back to index.html.
+    // The inline <script> guard in explorer.html uses sessionStorage 'sai_launched'
+    // (set by index.html CTA clicks) to allow entry — referrer-based checks are
+    // unreliable in PWA cold-launches and cached navigations, so the SW always
+    // bounces here and lets the page script decide.
+    if (path === '/explorer.html') {
       event.respondWith(Response.redirect('/index.html', 302));
       return;
     }

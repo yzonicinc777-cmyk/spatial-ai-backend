@@ -20,14 +20,19 @@
   -->
   <script>
     (function () {
-      var ref = document.referrer;
-      var sameOrigin = ref && new URL(ref).origin === location.origin;
+      // 'sai_launched' is set by index.html when a CTA button is clicked.
+      // It is intentionally session-scoped so PWA cold-launches and direct
+      // URL entries always pass through the landing page first.
       var launched = sessionStorage.getItem('sai_launched');
-      if (!sameOrigin && !launched) {
-        // Preserve the intent: after landing page, auto-redirect to explorer
+      if (!launched) {
+        // Not arrived via a CTA click — send to landing page.
+        // Set a flag so index.html can show an auto-launch button if desired.
         sessionStorage.setItem('sai_goto_explorer', '1');
         location.replace('index.html');
       }
+      // Once the user navigates here legitimately, consume the flag so that
+      // a manual reload of explorer.html still works within the same session.
+      // Do NOT remove 'sai_launched' here — keep it so refreshes work fine.
     })();
   </script>
 
