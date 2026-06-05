@@ -71,10 +71,12 @@
   .quick-actions { gap: var(--sp-1); }
 
   #voice-bar {
-    left: 8px;
-    right: 8px;
-    padding: var(--sp-2) var(--sp-3);
-  }
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  width: calc(100vw - 16px);
+  padding: var(--sp-2) var(--sp-3);
+}
 
   #nav-bar {
     left: 8px;
@@ -945,10 +947,14 @@
 /* On mobile, Gemini bar is full-width minus margin */
 @media screen and (max-width: 479px) {
   .gemini-bar {
-    height: 54px;
-    bottom: calc(12px + var(--safe-bottom));
-    padding: 0 8px;
+    height: 64px;
+    bottom: calc(16px + var(--safe-bottom));
+    padding: 0 10px;
     gap: 6px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: calc(100vw - 24px);
   }
 
   .gemini-plus-btn,
@@ -961,7 +967,15 @@
 
 /* Tiny screens */
 @media screen and (max-width: 359px) {
-  .gemini-bar { height: 50px; bottom: calc(8px + var(--safe-bottom)); }
+  .gemini-bar {
+    height: 60px;
+    bottom: calc(10px + var(--safe-bottom));
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: calc(100vw - 16px);
+  }
+  
   .sidebar-toggle { left: 8px; }
 }
 

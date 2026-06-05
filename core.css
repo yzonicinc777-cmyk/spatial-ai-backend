@@ -938,7 +938,7 @@ body.template-mode .scan-corner-bl {
   left: 50%;
   transform: translateX(-50%);
   width: min(calc(100vw - 24px), 680px);   /* wider, like Claude bar */
-  height: 68px;                             /* taller for easier tap */
+  height: 72px;                             /* taller for easier tap */
   background: rgba(18, 28, 48, 0.88);
   backdrop-filter: blur(36px) saturate(1.8);
   -webkit-backdrop-filter: blur(36px) saturate(1.8);
@@ -1113,7 +1113,10 @@ body.template-mode .scan-corner-bl {
   text-overflow: ellipsis;
   white-space: nowrap;
   transition: color var(--dur-mid);
-  font-style: italic;
+  font-style: normal;
+font-family: var(--font-sans);
+font-weight: 500;
+font-size: var(--t-base);
   min-width: 0;
 }
 
@@ -1409,8 +1412,8 @@ body.template-mode .scan-corner-bl {
 
 /* ─── §17  EXPLORE PAGE ──────────────────────────────────────────────────── */
 #explore-page {
-  /* Claude home screen colour: warm cream background */
-  background: #f5f4ef;
+  /* Skin tone background */
+  background: #f8ebe0;
   color: #1a1a1a;
 }
  
