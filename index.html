@@ -1,368 +1,1434 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0, interactive-widget=resizes-content" />
-  <title>Spatial AI • Explorer</title>
-  <meta name="description" content="Point your camera, find anything. A spatial browser for the real world." />
-  <meta name="theme-color" content="#02040a" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Spatial AI Explorer — See the World Differently</title>
+<meta name="description" content="Spatial AI Explorer by Yzonic.corp. Point your camera, find anything. The future of augmented reality intelligence."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=Mona+Sans:ital,wdth,wght@0,75..125,200..900;1,75..125,200..900&family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,200;0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --black: #0a0a0a;
+  --white: #f5f5f7;
+  --off-white: #fbfbfd;
+  --gray-100: #e8e8ed;
+  --gray-200: #d2d2d7;
+  --gray-500: #86868b;
+  --gray-700: #424245;
+  --cyan: #00d4ff;
+  --cyan-dim: #00a8cc;
+  --violet: #7b2ff7;
+  --glass-bg: rgba(255,255,255,0.06);
+  --glass-border: rgba(255,255,255,0.12);
+  --glass-bg-dark: rgba(0,0,0,0.35);
+  --font-display: 'Mona Sans', 'DM Sans', system-ui, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-mono: 'Space Mono', monospace;
+}
 
-  <!-- PWA / mobile shell -->
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Spatial AI" />
-  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-  <link rel="manifest" href="/manifest.json" />
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  <!-- Favicon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='28' fill='none' stroke='%2300d4ff' stroke-width='3'/><polygon points='32,14 36,28 50,32 36,36 32,50 28,36 14,32 28,28' fill='%2300d4ff'/></svg>" type="image/svg+xml" />
+html { scroll-behavior: smooth; font-size: 16px; }
 
-  <!-- Security -->
-  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-  <meta name="referrer" content="strict-origin-when-cross-origin" />
-  <meta http-equiv="Permissions-Policy" content="camera=*, microphone=*, geolocation=*, gyroscope=*, magnetometer=*" />
+body {
+  font-family: var(--font-display);
+  background: var(--black);
+  color: var(--white);
+  overflow-x: hidden;
+  cursor: default;
+  -webkit-font-smoothing: antialiased;
+}
 
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    font-src 'self' https://fonts.gstatic.com data:;
-    img-src 'self' data: blob: https://*.tile.openstreetmap.org;
-    connect-src 'self' https://overpass-api.de https://nominatim.openstreetmap.org https://*.cloudflare.com https://*.amazonaws.com;
-    media-src 'self' blob:;
-    worker-src 'self' blob:;
-    manifest-src 'self';
-  " />
+/* ── SCROLLBAR ───────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
 
-  <!-- Fonts — preconnect first, then the actual load -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,200;0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+/* ══════════════════════════════════════════════════════════════ */
+/*  NAVBAR                                                         */
+/* ══════════════════════════════════════════════════════════════ */
+#navbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 52px;
+  background: rgba(10,10,10,0.72);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border-bottom: 0.5px solid rgba(255,255,255,0.08);
+  transition: background 0.4s;
+}
 
- <link rel="stylesheet" href="/core.css" />
-<link rel="stylesheet" href="/responsive.css" />
-<link rel="stylesheet" href="/animations.css" />
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 600; font-size: 15px; letter-spacing: -0.3px;
+  color: var(--white); text-decoration: none;
+}
 
-  <!-- Module preloads -->
-  <link rel="modulepreload" href="/app.js" crossorigin="anonymous" />
-  <link rel="modulepreload" href="/pkg/spatial_explorer_core.js" crossorigin="anonymous" />
+.nav-logo svg { width: 26px; height: 26px; }
+
+/* OpenAI-style sidebar pills */
+.nav-pills {
+  display: flex; align-items: center; gap: 4px;
+  list-style: none;
+}
+.nav-pills li a {
+  display: block;
+  padding: 5px 13px;
+  font-size: 13px;
+  font-weight: 450;
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  border-radius: 20px;
+  transition: background 0.2s, color 0.2s;
+  letter-spacing: -0.1px;
+}
+.nav-pills li a:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--white);
+}
+.nav-cta {
+  padding: 7px 20px !important;
+  background: var(--white) !important;
+  color: var(--black) !important;
+  font-weight: 600 !important;
+  border-radius: 20px !important;
+  font-size: 13px !important;
+}
+.nav-cta:hover { opacity: 0.88 !important; background: var(--white) !important; }
+
+/* ══════════════════════════════════════════════════════════════ */
+/*  HERO                                                           */
+/* ══════════════════════════════════════════════════════════════ */
+#hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  padding: 140px 24px 80px;
+  overflow: hidden;
+}
+
+#hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 16px;
+  font-size: 12px; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  border: 0.5px solid rgba(0,212,255,0.35);
+  border-radius: 20px;
+  background: rgba(0,212,255,0.07);
+  margin-bottom: 32px;
+  animation: fadeUp 0.8s ease both;
+}
+.hero-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+.hero-h1 {
+  font-size: clamp(52px, 9vw, 96px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.0;
+  max-width: 900px;
+  margin: 0 auto 12px;
+  animation: fadeUp 0.9s 0.1s ease both;
+}
+
+.hero-h1 .line-dim { color: rgba(245,245,247,0.35); }
+.hero-h1 .line-accent { 
+  background: linear-gradient(135deg, #fff 0%, #00d4ff 60%, #7b2ff7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  font-size: clamp(17px, 2.5vw, 22px);
+  font-weight: 300;
+  color: rgba(245,245,247,0.55);
+  max-width: 560px;
+  margin: 0 auto 48px;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  animation: fadeUp 1s 0.2s ease both;
+}
+
+.hero-actions {
+  display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+  animation: fadeUp 1s 0.3s ease both;
+}
+
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 17px 38px;
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--black);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 50px;
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  letter-spacing: -0.02em;
+}
+.btn-primary::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(123,47,247,0.12));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.btn-primary:hover { transform: scale(1.03); border-color: rgba(0,212,255,0.5); box-shadow: 0 0 40px rgba(0,212,255,0.2); }
+.btn-primary:hover::before { opacity: 1; }
+.btn-primary:active { transform: scale(0.98); }
+
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 17px 38px;
+  font-size: 17px;
+  font-weight: 500;
+  color: rgba(245,245,247,0.7);
+  background: transparent;
+  border: none;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 50px;
+  transition: color 0.2s;
+  letter-spacing: -0.02em;
+}
+.btn-secondary:hover { color: var(--white); }
+.btn-secondary svg { transition: transform 0.2s; }
+.btn-secondary:hover svg { transform: translateX(3px); }
+
+/* ── Liquid glass orb ─────────────────────────────────────────── */
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+}
+.orb-1 { width: 600px; height: 600px; background: radial-gradient(circle, rgba(0,212,255,0.12), transparent 70%); top: -100px; left: 50%; transform: translateX(-50%); }
+.orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(123,47,247,0.15), transparent 70%); bottom: 0; right: -100px; }
+.orb-3 { width: 300px; height: 300px; background: radial-gradient(circle, rgba(0,212,255,0.08), transparent 70%); bottom: 100px; left: -50px; }
+
+/* ── Phone mockup ─────────────────────────────────────────────── */
+.hero-device-wrap {
+  margin-top: 72px;
+  position: relative;
+  display: inline-block;
+  animation: fadeUp 1.1s 0.5s ease both;
+}
+
+.hero-device {
+  width: 280px;
+  height: 560px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 42px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.device-screen {
+  position: absolute; inset: 12px;
+  border-radius: 32px;
+  background: linear-gradient(180deg, #060c1a 0%, #0a0f1c 100%);
+  overflow: hidden;
+  display: flex; flex-direction: column; align-items: center;
+}
+
+.device-notch {
+  width: 100px; height: 28px;
+  background: var(--black);
+  border-radius: 0 0 20px 20px;
+  margin: 0 auto;
+  flex-shrink: 0;
+}
+
+.device-scan-ring {
+  margin: auto;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,212,255,0.4);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  animation: spin-ring 8s linear infinite;
+}
+.device-scan-ring::after {
+  content: '';
+  position: absolute;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,212,255,0.2);
+  animation: spin-ring 4s linear infinite reverse;
+}
+.scan-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 12px var(--cyan);
+  animation: scan-pulse 2s ease-in-out infinite;
+}
+
+@keyframes spin-ring {
+  to { transform: rotate(360deg); }
+}
+@keyframes scan-pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.6); }
+}
+
+.device-label {
+  font-size: 11px; font-weight: 500; color: rgba(0,212,255,0.7);
+  letter-spacing: 0.12em; text-transform: uppercase;
+  margin-top: 16px; margin-bottom: auto;
+}
+
+.device-glow {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 40%, rgba(0,212,255,0.12) 0%, transparent 70%);
+}
+
+/* ══════════════════════════════════════════════════════════════ */
+/*  SECTION BASE                                                   */
+/* ══════════════════════════════════════════════════════════════ */
+section { position: relative; overflow: hidden; }
+
+.section-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.section-eyebrow {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--cyan);
+  margin-bottom: 16px;
+  display: block;
+}
+
+.section-h2 {
+  font-size: clamp(36px, 5.5vw, 62px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  margin-bottom: 20px;
+}
+
+.section-body {
+  font-size: 18px;
+  font-weight: 300;
+  color: rgba(245,245,247,0.55);
+  line-height: 1.65;
+  max-width: 640px;
+}
+
+/* ══════════════════════════════════════════════════════════════ */
+/*  MARQUEE (Infinite Slider)                                      */
+/* ══════════════════════════════════════════════════════════════ */
+#marquee-section {
+  padding: 40px 0;
+  background: rgba(255,255,255,0.015);
+  border-top: 0.5px solid rgba(255,255,255,0.07);
+  border-bottom: 0.5px solid rgba(255,255,255,0.07);
+}
+
+.marquee-track { overflow: hidden; }
+.marquee-inner {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 28s linear infinite;
+}
+.marquee-inner:hover { animation-play-state: paused; }
+
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.marquee-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 40px;
+  font-size: 13px; font-weight: 500;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.marquee-item::before {
+  content: '';
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--cyan); opacity: 0.5;
+}
+
+/* ══════════════════════════════════════════════════════════════ */
+/*  FEATURES SLIDE                                                  */
+/* ══════════════════════════════════════════════════════════════ */
+#features-section {
+  padding: 140px 0;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin-top: 80px;
+}
+
+.feat-card {
+  background: rgba(255,255,255,0.025);
+  border: 0.5px solid rgba(255,255,255,0.07);
+  padding: 40px 36px;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.3s, transform 0.3s;
+  cursor: default;
+}
+.feat-card:hover { background: rgba(255,255,255,0.05); transform: translateY(-2px); }
+.feat-card::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.3), transparent);
+  opacity: 0; transition: opacity 0.3s;
+}
+.feat-card:hover::after { opacity: 1; }
+
+.feat-icon {
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  background: rgba(0,212,255,0.1);
+  border: 0.5px solid rgba(0,212,255,0.25);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 24px;
+}
+.feat-icon svg { width: 22px; height: 22px; stroke: var(--cyan); fill: none; stroke-width: 1.5; stroke-linecap: round; }
+
+.feat-title {
+  font-size: 18px; font-weight: 600;
+  letter-spacing: -0.02em; margin-bottom: 10px;
+  color: var(--white);
+}
+
+.feat-desc {
+  font-size: 14px; font-weight: 300;
+  color: rgba(245,245,247,0.45); line-height: 1.6;
+}
+
+/* ══════════════════════════════════════════════════════════════ */
+/*  SLIDING PANELS (DeepMind / Apple style)                        */
+/* ══════════════════════════════════════════════════════════════ */
+#showcase-section {
+  padding: 0;
+}
+
+.showcase-panel {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 120px 64px;
+  gap: 80px;
+  position: relative;
+}
+
+.showcase-panel:nth-child(even) .showcase-text { order: 2; }
+.showcase-panel:nth-child(even) .showcase-visual { order: 1; }
+
+.showcase-panel:nth-child(odd) {
+  background: rgba(255,255,255,0.01);
+}
+
+.showcase-text .eyebrow {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cyan); margin-bottom: 18px; display: block;
+}
+
+.showcase-text h3 {
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 700; letter-spacing: -0.035em;
+  line-height: 1.1; margin-bottom: 20px;
+  color: var(--white);
+}
+
+.showcase-text p {
+  font-size: 17px; font-weight: 300;
+  color: rgba(245,245,247,0.5); line-height: 1.7;
+  margin-bottom: 32px;
+}
+
+.showcase-text .learn-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 16px; font-weight: 500; color: var(--cyan);
+  text-decoration: none;
+  transition: gap 0.2s;
+}
+.showcase-text .learn-link:hover { gap: 14px; }
+
+.showcase-visual {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Glass card visual */
+.glass-card {
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 1 / 1.1;
+  border-radius: 28px;
+  background: rgba(255,255,255,0.04);
+  border: 0.5px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.glass-card .card-glow {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 20%, rgba(0,212,255,0.18), transparent 65%);
+  pointer-events: none;
+}
+
+.glass-card .card-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* AR overlay visual */
+.ar-visual {
+  position: relative;
+  width: 100%; max-width: 420px;
+}
+
+.ar-frame {
+  width: 100%;
+  aspect-ratio: 4/5;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #0c1520, #060c18);
+  border: 0.5px solid rgba(255,255,255,0.08);
+  overflow: hidden;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.ar-crosshair {
+  width: 120px; height: 120px;
+  position: relative;
+}
+.ar-crosshair::before, .ar-crosshair::after {
+  content: '';
+  position: absolute;
+  background: rgba(0,212,255,0.6);
+}
+.ar-crosshair::before { left: 50%; top: 0; bottom: 0; width: 1px; transform: translateX(-50%); }
+.ar-crosshair::after { top: 50%; left: 0; right: 0; height: 1px; transform: translateY(-50%); }
+
+.ar-corner {
+  position: absolute;
+  width: 20px; height: 20px;
+  border-color: var(--cyan);
+  border-style: solid;
+  border-width: 0;
+}
+.ar-corner.tl { top: 12px; left: 12px; border-top-width: 2px; border-left-width: 2px; border-radius: 3px 0 0 0; }
+.ar-corner.tr { top: 12px; right: 12px; border-top-width: 2px; border-right-width: 2px; border-radius: 0 3px 0 0; }
+.ar-corner.bl { bottom: 12px; left: 12px; border-bottom-width: 2px; border-left-width: 2px; border-radius: 0 0 0 3px; }
+.ar-corner.br { bottom: 12px; right: 12px; border-bottom-width: 2px; border-right-width: 2px; border-radius: 0 0 3px 0; }
+
+.ar-tag {
+  position: absolute;
+  background: rgba(0,212,255,0.12);
+  border: 0.5px solid rgba(0,212,255,0.35);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--cyan);
+  white-space: nowrap;
+  animation: float-tag 3s ease-in-out infinite;
+}
+.ar-tag-1 { top: 28%; right: -10px; animation-delay: 0s; }
+.ar-tag-2 { bottom: 30%; left: -15px; animation-delay: 1.2s; }
+.ar-tag-3 { top: 58%; right: 20px; animation-delay: 0.6s; }
+
+@keyframes float-tag {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* ══════════════════════════════════════════════════════════════ */
+/*  FUTURE VISION — Text + color change                            */
+/* ══════════════════════════════════════════════════════════════ */
+#vision-section {
+  padding: 160px 0;
+  background: #000;
+}
+
+.vision-inner {
+  max-width: 900px; margin: 0 auto; padding: 0 32px;
+  text-align: center;
+}
+
+.vision-tagline {
+  font-size: clamp(40px, 7vw, 82px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  margin-bottom: 0;
+}
+
+.vision-tagline .word {
+  display: inline-block;
+  transition: color 0.4s;
+  margin: 0 4px;
+}
+
+.vision-fields {
+  margin-top: 80px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  text-align: left;
+}
+
+.vision-field {
+  padding: 32px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.03);
+  border: 0.5px solid rgba(255,255,255,0.07);
+  transition: background 0.3s, border-color 0.3s;
+  position: relative; overflow: hidden;
+}
+.vision-field:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(0,212,255,0.25);
+}
+.vision-field .field-num {
+  font-family: var(--font-mono); font-size: 11px;
+  color: rgba(255,255,255,0.2); margin-bottom: 20px; display: block;
+}
+.vision-field h4 { font-size: 20px; font-weight: 600; margin-bottom: 10px; letter-spacing: -0.02em; }
+.vision-field p { font-size: 14px; color: rgba(255,255,255,0.45); line-height: 1.6; font-weight: 300; }
+.field-accent {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+  opacity: 0; transition: opacity 0.3s;
+}
+.vision-field:hover .field-accent { opacity: 1; }
+
+/* ══════════════════════════════════════════════════════════════ */
+/*  STATS BAND                                                      */
+/* ══════════════════════════════════════════════════════════════ */
+#stats-section {
+  padding: 100px 0;
+  border-top: 0.5px solid rgba(255,255,255,0.06);
+  border-bottom: 0.5px solid rgba(255,255,255,0.06);
+}
+
+.stats-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  max-width: 1080px; margin: 0 auto; padding: 0 32px;
+}
+
+.stat-item {
+  padding: 24px 32px;
+  border-right: 0.5px solid rgba(255,255,255,0.06);
+}
+.stat-item:last-child { border-right: none; }
+
+.stat-num {
+  font-size: 52px; font-weight: 700;
+  letter-spacing: -0.04em; line-height: 1;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #fff 30%, #00d4ff 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-label { font-size: 14px; color: rgba(255,255,255,0.4); font-weight: 300; }
+
+/* ══════════════════════════════════════════════════════════════ */
+/*  CTA SECTION                                                     */
+/* ══════════════════════════════════════════════════════════════ */
+#cta-section {
+  padding: 180px 0;
+  text-align: center;
+  position: relative;
+}
+.cta-glow {
+  position: absolute;
+  width: 700px; height: 400px;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  background: radial-gradient(ellipse, rgba(0,212,255,0.08) 0%, rgba(123,47,247,0.06) 40%, transparent 70%);
+  pointer-events: none;
+}
+
+#cta-section .section-h2 { margin-bottom: 16px; }
+#cta-section .section-body { margin: 0 auto 56px; text-align: center; }
+.cta-btn-wrap { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+/* ══════════════════════════════════════════════════════════════ */
+/*  ABOUT / FOOTER                                                  */
+/* ══════════════════════════════════════════════════════════════ */
+#about-section {
+  background: #050505;
+  border-top: 0.5px solid rgba(255,255,255,0.07);
+  padding: 100px 0 0;
+}
+
+.about-top {
+  max-width: 1080px; margin: 0 auto; padding: 0 32px;
+  display: grid; grid-template-columns: 1.2fr 1fr;
+  gap: 80px; margin-bottom: 80px;
+}
+
+.about-left h2 {
+  font-size: clamp(34px, 4vw, 52px);
+  font-weight: 700; letter-spacing: -0.035em;
+  line-height: 1.1; margin-bottom: 24px;
+}
+
+.about-left p {
+  font-size: 16px; font-weight: 300;
+  color: rgba(255,255,255,0.45); line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.about-left .founder-chip {
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-top: 24px;
+  padding: 10px 18px;
+  background: rgba(255,255,255,0.04);
+  border: 0.5px solid rgba(255,255,255,0.1);
+  border-radius: 40px;
+  font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7);
+}
+.founder-chip .avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: #fff;
+}
+
+.about-right { display: flex; flex-direction: column; gap: 28px; }
+
+.vision-block { padding: 28px 0; border-bottom: 0.5px solid rgba(255,255,255,0.07); }
+.vision-block:last-child { border-bottom: none; }
+.vision-block h4 { font-size: 16px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.01em; }
+.vision-block p { font-size: 14px; font-weight: 300; color: rgba(255,255,255,0.4); line-height: 1.65; }
+
+/* ── Footer links ─────────────────────────────────────────────── */
+.footer-links-grid {
+  max-width: 1080px; margin: 0 auto; padding: 60px 32px;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px;
+  border-top: 0.5px solid rgba(255,255,255,0.07);
+}
+
+.footer-brand .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.footer-brand .logo svg { width: 28px; height: 28px; }
+.footer-brand .logo span { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
+.footer-brand p { font-size: 13px; color: rgba(255,255,255,0.3); line-height: 1.6; max-width: 260px; }
+
+.footer-col h5 { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 16px; }
+.footer-col ul { list-style: none; }
+.footer-col ul li { margin-bottom: 10px; }
+.footer-col ul li a { font-size: 14px; color: rgba(255,255,255,0.45); text-decoration: none; transition: color 0.2s; }
+.footer-col ul li a:hover { color: var(--white); }
+
+/* ── Footer bottom bar ────────────────────────────────────────── */
+.footer-bottom {
+  border-top: 0.5px solid rgba(255,255,255,0.07);
+  padding: 28px 32px;
+  max-width: 1080px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+}
+.footer-bottom p { font-size: 12px; color: rgba(255,255,255,0.25); }
+.footer-bottom a { color: rgba(255,255,255,0.35); text-decoration: none; }
+.footer-bottom a:hover { color: var(--white); }
+
+/* ══════════════════════════════════════════════════════════════ */
+/*  ANIMATIONS                                                      */
+/* ══════════════════════════════════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  opacity: 0; transform: translateY(36px);
+  transition: opacity 0.8s cubic-bezier(.22,.61,.36,1), transform 0.8s cubic-bezier(.22,.61,.36,1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ══════════════════════════════════════════════════════════════ */
+/*  RESPONSIVE                                                      */
+/* ══════════════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .showcase-panel { grid-template-columns: 1fr; padding: 80px 32px; min-height: unset; gap: 48px; }
+  .showcase-panel:nth-child(even) .showcase-text, .showcase-panel:nth-child(even) .showcase-visual { order: unset; }
+  .vision-fields { grid-template-columns: 1fr 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .stat-item { border-right: none; border-bottom: 0.5px solid rgba(255,255,255,0.06); }
+  .about-top { grid-template-columns: 1fr; gap: 48px; }
+  .footer-links-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  .nav-pills { display: none; }
+  .features-grid { grid-template-columns: 1fr; }
+  .vision-fields { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .footer-links-grid { grid-template-columns: 1fr; }
+  #navbar { padding: 0 16px; }
+}
+</style>
 </head>
 <body>
 
-  <!-- ═══════════════════ SPLASH SCREEN ═══════════════════ -->
-  <div id="splash-screen" class="splash-screen" role="status" aria-label="Loading Spatial AI">
-    <div class="splash-content">
-      <div class="splash-logo">
+<!-- ══════════════════════════════════ NAVBAR ══════════════════════════════════ -->
+<nav id="navbar">
+  <a class="nav-logo" href="#">
+    <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="14" cy="14" r="12" stroke="#00d4ff" stroke-width="1.5"/>
+      <polygon points="14,7 16,12.5 22,14 16,15.5 14,21 12,15.5 6,14 12,12.5" fill="#00d4ff"/>
+    </svg>
+    Spatial AI
+  </a>
 
-        <div class="logo-icon">
-          <svg viewBox="0 0 64 64" class="logo-svg" aria-hidden="true">
-            <defs>
-              <linearGradient id="splashGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#00d4ff" />
-                <stop offset="100%" stop-color="#7b2ff7" />
-              </linearGradient>
-            </defs>
-            <circle cx="32" cy="32" r="28" fill="none" stroke="url(#splashGrad)" stroke-width="2"
-              stroke-dasharray="175" stroke-dashoffset="175">
-              <animate attributeName="stroke-dashoffset" from="175" to="0" dur="1s" fill="freeze" />
-            </circle>
-            <polygon points="32,18 35.5,29 47,32 35.5,35 32,46 28.5,35 17,32 28.5,29"
-              fill="url(#splashGrad)" opacity="0">
-              <animate attributeName="opacity" from="0" to="1" dur="0.4s" begin="0.9s" fill="freeze" />
-            </polygon>
-          </svg>
-        </div>
-
-        <h1 class="splash-title">
-          <span>Spatial</span>
-          <span class="accent"> AI</span>
-        </h1>
-        <p class="splash-sub">explore the world through your lens</p>
-      </div>
-
-      <!-- Progress bar -->
-      <div class="splash-progress" aria-hidden="true">
-        <div class="splash-progress-fill"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════════════ PARTICLE BG ═══════════════════ -->
-  <canvas id="bg-canvas" class="bg-canvas" aria-hidden="true"></canvas>
-
-  <!-- ═══════════════════ APP SHELL ═══════════════════ -->
-  <div id="app" class="app-container" style="opacity:0;" aria-hidden="true">
-
-    <!-- ── Status Bar ── -->
-    <header class="status-bar" role="banner">
-      <div class="status-left">
-        <span id="clock" class="status-time" aria-live="off" aria-label="Current time">12:00</span>
-      </div>
-      <div class="status-center">
-        <div class="status-indicator" id="status-indicator" role="status" aria-live="polite">
-          <span class="status-dot" aria-hidden="true"></span>
-          <span id="status-text">Ready</span>
-        </div>
-      </div>
-      <div class="status-right">
-        <span id="gps-badge"     class="status-badge" title="GPS accuracy">📍 --</span>
-        <span id="compass-badge" class="status-badge" title="Compass heading">🧭 --°</span>
-        <span id="battery-badge" class="status-badge" title="Battery">🔋 --</span>
-        <span id="network-badge" class="status-badge online" title="Network">🌐</span>
-      </div>
-    </header>
-
-    <!-- ── Pages ── -->
-    <main class="main-content" role="main">
-
-      <!-- Camera Page -->
-      <section id="camera-page" class="page active" aria-label="Camera view">
-        <div class="camera-container">
-          <video id="video" autoplay playsinline muted disablePictureInPicture
-            aria-label="Live camera feed"></video>
-          <canvas id="overlay-canvas" class="overlay-canvas" aria-hidden="true"></canvas>
-
-          <!-- Scan reticle — 4 corner divs for full control -->
-          <div class="scan-reticle" aria-hidden="true">
-            <div class="scan-corner-tr"></div>
-            <div class="scan-corner-bl"></div>
-            <div class="scan-line"></div>
-          </div>
-
-          <!-- AR Detection Box -->
-          <div id="detection-box" class="detection-box hidden" role="status" aria-live="polite">
-            <div class="detection-label"    id="detection-label">Object</div>
-            <div class="detection-distance" id="detection-distance">~1.5 m</div>
-            <button class="detection-buy-btn" id="detection-buy-btn" aria-label="View details for detected object">Details →</button>
-          </div>
-
-          <!-- Compass Ring -->
-          <div id="compass-ring" class="compass-ring" aria-hidden="true">
-            <svg viewBox="0 0 120 120" class="compass-svg">
-              <defs>
-                <linearGradient id="compassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#00d4ff" />
-                  <stop offset="100%" stop-color="#7b2ff7" />
-                </linearGradient>
-              </defs>
-              <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
-              <circle cx="60" cy="60" r="48" fill="none" stroke="url(#compassGrad)" stroke-width="3"
-                stroke-dasharray="301" stroke-dashoffset="0" stroke-linecap="round"/>
-              <!-- N marker -->
-              <text x="60" y="20" text-anchor="middle" font-size="7" font-family="Space Mono,monospace"
-                fill="rgba(0,212,255,0.9)" font-weight="700">N</text>
-              <!-- Needle -->
-              <polygon points="60,25 63,55 60,58 57,55" fill="#00d4ff" opacity="0.9"/>
-              <polygon points="60,91 63,65 60,62 57,65" fill="rgba(255,255,255,0.25)"/>
-              <circle cx="60" cy="60" r="4" fill="rgba(0,212,255,0.6)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
-            </svg>
-          </div>
-        </div>
-
-        <!-- Gemini-style Input Bar -->
-<div class="gemini-bar" id="voice-bar" role="region" aria-label="Controls">
-  <!-- + menu button -->
-  <div class="gemini-plus-wrap">
-    <button class="gemini-plus-btn" id="gemini-plus-btn" aria-label="More options" aria-expanded="false">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <line x1="10" y1="3" x2="10" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </button>
-    <!-- Popover menu -->
-    <div class="gemini-menu" id="gemini-menu" aria-hidden="true">
-      <button class="gemini-menu-item" id="scanBtn" aria-label="Scan centre of frame">
-        <span class="gmi-icon">🔍</span><span>Scan</span>
-      </button>
-      <button class="gemini-menu-item" id="setTemplateBtn" aria-label="Set detection template">
-        <span class="gmi-icon">✦</span><span>Template</span>
-      </button>
-      <button class="gemini-menu-item" id="flashlightBtn" aria-label="Toggle flashlight">
-        <span class="gmi-icon">💡</span><span>Light</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Mic / transcript area -->
-  <button id="mic-btn" class="gemini-mic-btn" aria-label="Activate voice command" aria-pressed="false">
-    <span class="mic-icon" aria-hidden="true">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <rect x="9" y="2" width="6" height="13" rx="3" fill="currentColor"/>
-        <path d="M5 10a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
-        <line x1="12" y1="20" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </span>
-  </button>
-
-  <div class="gemini-text-area">
-    <div class="voice-text" id="voice-text" aria-live="polite" aria-atomic="true">
-      Say "find red shoes near me"
-    </div>
-    <div class="voice-wave" id="voice-wave" aria-hidden="true">
-      <span></span><span></span><span></span><span></span><span></span>
-    </div>
-  </div>
-
-  <!-- FAB merged into bar -->
-  <button class="gemini-fab" id="ai-lens-fab" aria-label="AI Lens — scan centre of frame">
-    <span class="fab-inner" aria-hidden="true">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" fill="currentColor"/>
-      </svg>
-    </span>
-  </button>
-</div>
-
-      </section>
-
-      <!-- Explore Page -->
-      <section id="explore-page" class="page" aria-label="Explore nearby">
-        <div class="page-header">
-          <button class="back-btn" aria-label="Back to camera">←</button>
-          <h2>Explore</h2>
-        </div>
-        <div class="explore-container">
-          <div class="search-box" role="search">
-            <label for="explore-search" class="sr-only">Search places or products</label>
-            <input type="search" id="explore-search"
-              placeholder="Search places, products…"
-              class="search-input"
-              autocomplete="off" spellcheck="false" />
-            <button class="search-btn" aria-label="Search">🔍</button>
-          </div>
-          <div id="map-container" class="map-container" role="img" aria-label="Map view">
-            <div class="map-placeholder">
-              <div class="map-pin" aria-hidden="true">📍</div>
-              <p>Loading map…</p>
-            </div>
-          </div>
-          <div id="poi-list" class="poi-list" role="list" aria-live="polite">
-            <p class="placeholder-text">Nearby places will appear here</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Profile Page -->
-      <section id="profile-page" class="page" aria-label="Your profile">
-        <div class="page-header">
-          <button class="back-btn" aria-label="Back to camera">←</button>
-          <h2>Profile</h2>
-        </div>
-        <div class="profile-grid">
-          <div class="card">
-            <h3>📁 Saved Templates</h3>
-            <div id="templates-list" class="templates-list" role="list" aria-live="polite">
-              <p class="placeholder-text">No templates saved yet</p>
-            </div>
-          </div>
-          <div class="card">
-            <h3>⚙️ Preferences</h3>
-            <div class="setting-item">
-              <label for="offline-toggle">Offline Mode</label>
-              <label class="toggle" aria-label="Toggle offline mode">
-                <input type="checkbox" id="offline-toggle" />
-                <span class="slider"></span>
-              </label>
-            </div>
-            <div class="setting-item">
-              <label for="voice-feedback-toggle">Voice Feedback</label>
-              <label class="toggle" aria-label="Toggle voice feedback">
-                <input type="checkbox" id="voice-feedback-toggle" checked />
-                <span class="slider"></span>
-              </label>
-            </div>
-          </div>
-          <div class="card">
-            <h3>📊 Stats</h3>
-            <div class="stats-grid" role="list">
-              <div class="stat" role="listitem"><strong>0</strong><span>Scans</span></div>
-              <div class="stat" role="listitem"><strong>0</strong><span>Templates</span></div>
-              <div class="stat" role="listitem"><strong>0</strong><span>Saved</span></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Settings Page -->
-      <section id="settings-page" class="page" aria-label="Settings">
-        <div class="page-header">
-          <button class="back-btn" aria-label="Back to camera">←</button>
-          <h2>Settings</h2>
-        </div>
-        <div class="card">
-          <div class="setting-item">
-            <label for="camera-resolution">Camera Resolution</label>
-            <select id="camera-resolution">
-              <option>1080p</option>
-              <option selected>720p</option>
-              <option>480p</option>
-            </select>
-          </div>
-          <div class="setting-item">
-            <label for="ar-opacity">AR Overlay Opacity</label>
-            <input type="range" id="ar-opacity" min="0.2" max="1" step="0.1" value="0.8"
-              aria-valuemin="0.2" aria-valuemax="1" aria-valuenow="0.8" />
-          </div>
-        </div>
-      </section>
-
-    </main>
-
-    <!-- ── Sidebar Toggle Button ── -->
-<button class="sidebar-toggle" id="sidebar-toggle" aria-label="Open navigation" aria-expanded="false">
-  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-    <rect y="2" width="18" height="2" rx="1" fill="currentColor"/>
-    <rect y="8" width="18" height="2" rx="1" fill="currentColor"/>
-    <rect y="14" width="18" height="2" rx="1" fill="currentColor"/>
-  </svg>
-</button>
-
-<!-- ── Sidebar ── -->
-<nav class="sidebar" id="nav-bar" aria-label="Main navigation" aria-hidden="true">
-  <div class="sidebar-header">
-    <span class="sidebar-title">Navigate</span>
-    <button class="sidebar-close" id="sidebar-close" aria-label="Close navigation">✕</button>
-  </div>
-  <button class="nav-btn active-nav" data-page="camera" aria-label="Camera" aria-current="page">
-    <span class="nav-icon" aria-hidden="true">📷</span>
-    <span class="nav-label">Camera</span>
-    <span class="nav-ripple" aria-hidden="true"></span>
-  </button>
-  <button class="nav-btn" data-page="explore" aria-label="Explore nearby">
-    <span class="nav-icon" aria-hidden="true">🗺</span>
-    <span class="nav-label">Explore</span>
-    <span class="nav-ripple" aria-hidden="true"></span>
-  </button>
-  <button class="nav-btn" data-page="profile" aria-label="Profile and settings">
-    <span class="nav-icon" aria-hidden="true">👤</span>
-    <span class="nav-label">Profile</span>
-    <span class="nav-ripple" aria-hidden="true"></span>
-  </button>
+  <ul class="nav-pills">
+    <li><a href="#features-section">Features</a></li>
+    <li><a href="#showcase-section">Technology</a></li>
+    <li><a href="#vision-section">Vision</a></li>
+    <li><a href="#about-section">About</a></li>
+    <li><a href="explorer.html" class="nav-cta">Try it Free →</a></li>
+  </ul>
 </nav>
-<!-- Sidebar backdrop -->
-<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
-  
+<!-- ══════════════════════════════════ HERO ══════════════════════════════════ -->
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="orb-1 hero-orb"></div>
+  <div class="orb-2 hero-orb"></div>
+  <div class="orb-3 hero-orb"></div>
 
-    <!-- ── Toasts ── -->
-    <div id="toast-container" class="toast-container" role="alert" aria-live="assertive" aria-atomic="true"></div>
+  <div class="hero-badge">Live Preview — Spatial Intelligence</div>
 
-    <!-- ── Modal ── -->
-    <div id="modal-overlay" class="modal-overlay hidden"
-      role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3 id="modal-title">Details</h3>
-          <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+  <h1 class="hero-h1">
+    <span class="line-dim">See the world</span><br>
+    <span class="line-accent">through intelligence.</span>
+  </h1>
+
+  <p class="hero-sub">
+    Point your camera at anything. Our on-device AI understands what it sees —
+    in real time, with zero latency, complete privacy.
+  </p>
+
+  <div class="hero-actions">
+    <a href="explorer.html" class="btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      Launch Spatial AI Explorer
+    </a>
+    <a href="#showcase-section" class="btn-secondary">
+      How it works
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+
+  <div class="hero-device-wrap">
+    <div class="hero-device">
+      <div class="device-screen">
+        <div class="device-notch"></div>
+        <div class="device-glow"></div>
+        <div class="device-scan-ring">
+          <div class="scan-dot"></div>
+          <div class="ar-corner tl"></div>
+          <div class="ar-corner tr"></div>
+          <div class="ar-corner bl"></div>
+          <div class="ar-corner br"></div>
         </div>
-        <div id="modal-body" class="modal-body"></div>
+        <div class="device-label">Scanning environment…</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ MARQUEE ══════════════════════════════════ -->
+<section id="marquee-section">
+  <div class="marquee-track">
+    <div class="marquee-inner" id="marquee-inner">
+      <!-- items injected by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ FEATURES ══════════════════════════════════ -->
+<section id="features-section">
+  <div class="section-inner">
+    <span class="section-eyebrow reveal">Core Capabilities</span>
+    <h2 class="section-h2 reveal">Built different.<br>Works smarter.</h2>
+    <p class="section-body reveal">Spatial AI Explorer runs entirely on your device — no cloud, no servers, no compromises. Our WASM-powered engine delivers desktop-grade intelligence through your phone's camera.</p>
+
+    <div class="features-grid">
+
+      <div class="feat-card reveal">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M1.05 12H5M19 12h2.95M12 1.05V5M12 19v2.95"/><path d="m4.22 4.22 2.83 2.83M16.95 16.95l2.83 2.83M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        </div>
+        <div class="feat-title">On-Device AI Engine</div>
+        <div class="feat-desc">WebAssembly-compiled computer vision runs natively in your browser. Zero round-trips, zero data leaves your device, full speed ahead.</div>
+      </div>
+
+      <div class="feat-card reveal">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg>
+        </div>
+        <div class="feat-title">Template Matching</div>
+        <div class="feat-desc">Capture any object as a template. Multi-scale Gaussian pyramid search with HOG features and RANSAC verification finds it anywhere in frame.</div>
+      </div>
+
+      <div class="feat-card reveal">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div class="feat-title">Spatial Mapping</div>
+        <div class="feat-desc">GPS, compass, and gyroscope fuse together to understand your location and orientation in three-dimensional space — continuously and silently.</div>
+      </div>
+
+      <div class="feat-card reveal">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+        </div>
+        <div class="feat-title">Voice Intelligence</div>
+        <div class="feat-desc">Natural language commands let you describe what to find. Whisper your query — the AI listens, understands, and acts immediately.</div>
+      </div>
+
+      <div class="feat-card reveal">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        </div>
+        <div class="feat-title">Real-Time Overlay</div>
+        <div class="feat-desc">Detection results paint directly over your camera view at 60fps. Bounding boxes, confidence scores, and spatial measurements rendered live.</div>
+      </div>
+
+      <div class="feat-card reveal">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="feat-title">Private by Design</div>
+        <div class="feat-desc">Every pixel stays on your device. No analytics, no profiling, no telemetry. Your camera data is yours — forever. Encrypted local storage only.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ SHOWCASE PANELS ══════════════════════════════════ -->
+<section id="showcase-section">
+
+  <!-- Panel 1: Real-time detection -->
+  <div class="showcase-panel">
+    <div class="showcase-text reveal">
+      <span class="eyebrow">Augmented Reality</span>
+      <h3>Reality, annotated<br>in milliseconds.</h3>
+      <p>Our detection engine processes every frame from your camera — identifying objects, measuring distances, and overlaying rich information without any perceptible delay. This is AR as it should feel: seamless.</p>
+      <a href="#" class="learn-link">Explore the technology <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+    </div>
+    <div class="showcase-visual reveal">
+      <div class="ar-frame" style="width:100%;max-width:420px;aspect-ratio:4/5;border-radius:24px;background:linear-gradient(135deg,#0c1520,#060c18);border:0.5px solid rgba(255,255,255,0.08);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,212,255,0.04),transparent);"></div>
+        <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:28px 28px;"></div>
+        <div class="ar-crosshair"></div>
+        <div class="ar-corner tl"></div>
+        <div class="ar-corner tr"></div>
+        <div class="ar-corner bl"></div>
+        <div class="ar-corner br"></div>
+        <div class="ar-tag ar-tag-1">conf: 0.94</div>
+        <div class="ar-tag ar-tag-2">dist: 2.3m</div>
+        <div class="ar-tag ar-tag-3">match: object_1</div>
+        <div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;font-family:var(--font-mono);font-size:10px;color:rgba(0,212,255,0.4);letter-spacing:0.1em;">SPATIAL AI · LIVE</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 2: Template engine -->
+  <div class="showcase-panel">
+    <div class="showcase-visual reveal">
+      <div class="glass-card">
+        <div class="card-glow"></div>
+        <div class="card-grid"></div>
+        <div style="position:relative;z-index:2;text-align:center;padding:32px;">
+          <div style="width:80px;height:80px;border-radius:50%;background:rgba(0,212,255,0.1);border:1.5px solid rgba(0,212,255,0.3);margin:0 auto 24px;display:flex;align-items:center;justify-content:center;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:rgba(0,212,255,0.6);letter-spacing:0.1em;margin-bottom:8px;">TEMPLATE ACTIVE</div>
+          <div style="font-size:18px;font-weight:600;color:#fff;margin-bottom:4px;">Object #0047</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.4);">Multi-scale pyramid · HOG · RANSAC</div>
+          <div style="margin-top:32px;display:flex;gap:12px;justify-content:center;">
+            <div style="background:rgba(0,212,255,0.08);border:0.5px solid rgba(0,212,255,0.25);border-radius:8px;padding:10px 16px;font-size:12px;color:rgba(0,212,255,0.8);">3 scales</div>
+            <div style="background:rgba(123,47,247,0.08);border:0.5px solid rgba(123,47,247,0.3);border-radius:8px;padding:10px 16px;font-size:12px;color:rgba(180,120,255,0.8);">HOG on</div>
+            <div style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 16px;font-size:12px;color:rgba(255,255,255,0.5);">0.35 min</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="showcase-text reveal">
+      <span class="eyebrow">Template Intelligence</span>
+      <h3>Snap once,<br>find forever.</h3>
+      <p>Photograph any object. Our Rust-compiled WASM engine extracts a rich visual fingerprint using HOG descriptors, multi-scale Gaussian pyramids, and RANSAC geometric verification — then hunts it down in any scene, at any scale.</p>
+      <a href="#" class="learn-link">See detection specs <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+    </div>
+  </div>
+
+  <!-- Panel 3: Privacy -->
+  <div class="showcase-panel">
+    <div class="showcase-text reveal">
+      <span class="eyebrow">Privacy Architecture</span>
+      <h3>Your eyes only.<br>Truly.</h3>
+      <p>Every computation runs in a sandboxed WebAssembly module inside your own browser. No image is ever transmitted to any server. No API key is required. Your templates live in your device's encrypted IndexedDB — not our cloud.</p>
+      <a href="#about-section" class="learn-link">Read our privacy vision <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+    </div>
+    <div class="showcase-visual reveal">
+      <div class="glass-card" style="background:rgba(255,255,255,0.02);border-color:rgba(255,255,255,0.07);">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(123,47,247,0.12),transparent 65%);"></div>
+        <div style="position:relative;z-index:2;padding:40px;display:flex;flex-direction:column;gap:16px;width:100%;">
+          <div style="display:flex;align-items:center;gap:14px;padding:18px;background:rgba(255,255,255,0.03);border-radius:14px;border:0.5px solid rgba(255,255,255,0.07);">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(0,212,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:2px;">On-device WASM</div>
+              <div style="font-size:12px;color:rgba(255,255,255,0.35);">Zero network calls</div>
+            </div>
+            <div style="margin-left:auto;font-size:11px;color:rgba(0,212,255,0.7);background:rgba(0,212,255,0.08);padding:3px 10px;border-radius:20px;">Active</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:18px;background:rgba(255,255,255,0.03);border-radius:14px;border:0.5px solid rgba(255,255,255,0.07);">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(123,47,247,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:2px;">Encrypted IndexedDB</div>
+              <div style="font-size:12px;color:rgba(255,255,255,0.35);">Local templates only</div>
+            </div>
+            <div style="margin-left:auto;font-size:11px;color:rgba(168,85,247,0.8);background:rgba(123,47,247,0.1);padding:3px 10px;border-radius:20px;">Secured</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:18px;background:rgba(255,255,255,0.03);border-radius:14px;border:0.5px solid rgba(255,255,255,0.07);">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:2px;">No telemetry</div>
+              <div style="font-size:12px;color:rgba(255,255,255,0.35);">No analytics, ever</div>
+            </div>
+            <div style="margin-left:auto;font-size:11px;color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.05);padding:3px 10px;border-radius:20px;">Verified</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════ STATS ══════════════════════════════════ -->
+<section id="stats-section">
+  <div class="stats-grid">
+    <div class="stat-item reveal">
+      <div class="stat-num" data-target="60">0</div>
+      <div class="stat-label">Frames per second, live detection</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-num" data-target="100">0</div>
+      <div class="stat-label">% on-device, zero cloud</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-num" data-suffix="ms" data-target="12">0</div>
+      <div class="stat-label">Average detection latency</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-num" data-target="5">0</div>
+      <div class="stat-label">Sensors fused simultaneously</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ VISION ══════════════════════════════════ -->
+<section id="vision-section">
+  <div class="vision-inner">
+    <span class="section-eyebrow reveal" style="display:block;text-align:center;margin-bottom:24px;">Future Goals</span>
+    <h2 class="vision-tagline reveal" id="vision-tagline">
+      <span class="word">Spatial</span>
+      <span class="word">intelligence</span>
+      <span class="word" style="color:rgba(255,255,255,0.3);">for</span>
+      <span class="word">every</span>
+      <span class="word">human</span>
+      <span class="word">endeavour.</span>
+    </h2>
+
+    <div class="vision-fields">
+
+      <div class="vision-field reveal">
+        <span class="field-num">01</span>
+        <h4>Medicine & Diagnostics</h4>
+        <p>AR overlays that guide surgeons, assist nurses in identifying medications, and help patients understand their own anatomy — real-time spatial intelligence in the operating theatre and clinic.</p>
+        <div class="field-accent"></div>
+      </div>
+
+      <div class="vision-field reveal">
+        <span class="field-num">02</span>
+        <h4>Engineering & Construction</h4>
+        <p>Overlay structural blueprints onto physical sites, identify components in complex machinery, and verify tolerances without instruments — AR as the engineer's second pair of eyes.</p>
+        <div class="field-accent"></div>
+      </div>
+
+      <div class="vision-field reveal">
+        <span class="field-num">03</span>
+        <h4>Education & Learning</h4>
+        <p>Turn any textbook into an interactive 3D experience. Point at a diagram, watch it come alive. Spatial AI will make abstract concepts tangible for the next generation of learners.</p>
+        <div class="field-accent"></div>
+      </div>
+
+      <div class="vision-field reveal">
+        <span class="field-num">04</span>
+        <h4>Accessibility</h4>
+        <p>Give sight to the visually impaired through rich audio descriptions of the world in front of them. Navigate public spaces, read text, identify faces of loved ones — all in real time.</p>
+        <div class="field-accent"></div>
+      </div>
+
+      <div class="vision-field reveal">
+        <span class="field-num">05</span>
+        <h4>Retail & Commerce</h4>
+        <p>Scan products, compare prices, read reviews, and understand ingredients — all without opening another app. The physical world becomes a seamless interface to information.</p>
+        <div class="field-accent"></div>
+      </div>
+
+      <div class="vision-field reveal">
+        <span class="field-num">06</span>
+        <h4>Environmental Science</h4>
+        <p>Identify species in the wild, measure deforestation in real time, monitor pollution — spatial AI as an instrument of planetary stewardship and climate accountability.</p>
+        <div class="field-accent"></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ CTA ══════════════════════════════════ -->
+<section id="cta-section">
+  <div class="cta-glow"></div>
+  <div class="section-inner" style="text-align:center;">
+    <span class="section-eyebrow reveal" style="display:block;text-align:center;margin-bottom:20px;">Start Today</span>
+    <h2 class="section-h2 reveal" style="margin-bottom:20px;">Ready to see differently?</h2>
+    <p class="section-body reveal" style="margin:0 auto 56px;">No sign-up. No credit card. No cloud. Open your browser, grant camera access, and experience the future of augmented reality — right now.</p>
+    <div class="cta-btn-wrap reveal">
+      <a href="explorer.html" class="btn-primary" style="font-size:18px;padding:20px 48px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M1.05 12H5M19 12h2.95M12 1.05V5M12 19v2.95"/></svg>
+        Try Spatial AI Explorer
+      </a>
+    </div>
+    <p style="margin-top:20px;font-size:13px;color:rgba(255,255,255,0.2);">Works on Chrome, Edge, and Safari 16+ · Requires camera permission</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ ABOUT ══════════════════════════════════ -->
+<section id="about-section">
+  <div class="about-top">
+    <div class="about-left reveal">
+      <h2>Built by Yzonic.corp<br>for humanity's future.</h2>
+      <p>Yzonic.corp was founded with a single conviction: that the boundary between the digital and physical worlds should dissolve — not through invasive surveillance, but through respectful, intelligent, on-device computation.</p>
+      <p>We believe AR is not a gadget feature. It is the next fundamental human interface — as transformative as the touchscreen, as personal as handwriting. We are building it the right way: private, open, and fast.</p>
+      <div class="founder-chip">
+        <div class="avatar">AH</div>
+        <span>Alexnaghis Huang — Founder & Chief Architect</span>
       </div>
     </div>
 
-  </div><!-- /#app -->
+    <div class="about-right reveal">
+      <div class="vision-block">
+        <h4>Vision for Humanity</h4>
+        <p>I believe technology should expand human capability without compromising human dignity. Spatial AI Explorer is proof that powerful intelligence and radical privacy are not opposites — they are complements. My goal is a world where every person, regardless of technical literacy, can access the full power of AI to understand their environment, make better decisions, and live richer lives.</p>
+      </div>
+      <div class="vision-block">
+        <h4>Privacy as a Human Right</h4>
+        <p>Every camera access, every sensor reading, every template you save stays on your device. I designed Yzonic's architecture from first principles around this axiom: your data is never for sale, never for training models, never transmitted without explicit consent. Privacy is not a compliance checkbox — it is the foundation of trust, and trust is the foundation of everything we build.</p>
+      </div>
+      <div class="vision-block">
+        <h4>Security Commitment</h4>
+        <p>Our WASM sandbox, strict Content Security Policy, and zero external dependency model mean Spatial AI Explorer has an attack surface measured in kilobytes, not megabytes. Regular third-party audits, open-source code, and transparent changelogs are not aspirational goals — they are our minimum standard.</p>
+      </div>
+    </div>
+  </div>
 
-  <style>.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}</style>
-  <script type="module" src="/app.js" crossorigin="anonymous"></script>
+  <!-- Footer links -->
+  <div class="footer-links-grid">
+    <div class="footer-brand">
+      <div class="logo">
+        <svg viewBox="0 0 28 28" fill="none">
+          <circle cx="14" cy="14" r="12" stroke="#00d4ff" stroke-width="1.5"/>
+          <polygon points="14,7 16,12.5 22,14 16,15.5 14,21 12,15.5 6,14 12,12.5" fill="#00d4ff"/>
+        </svg>
+        <span>Spatial AI Explorer</span>
+      </div>
+      <p>Point your camera, find anything. Built by Yzonic.corp — private, fast, and entirely on your device.</p>
+    </div>
+
+    <div class="footer-col">
+      <h5>Product</h5>
+      <ul>
+        <li><a href="#features-section">Features</a></li>
+        <li><a href="#showcase-section">Technology</a></li>
+        <li><a href="explorer.html">Launch App</a></li>
+        <li><a href="#">Changelog</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h5>Company</h5>
+      <ul>
+        <li><a href="#about-section">About</a></li>
+        <li><a href="#">Yzonic.corp</a></li>
+        <li><a href="#">Open Source</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h5>Privacy</h5>
+      <ul>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Security</a></li>
+        <li><a href="#">Terms of Use</a></li>
+        <li><a href="#">Cookie Policy</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>© 2025 Yzonic.corp. All rights reserved. Spatial AI Explorer is an open-source project by Alexnaghis Huang.</p>
+    <p><a href="#">Privacy</a> &nbsp;·&nbsp; <a href="#">Terms</a> &nbsp;·&nbsp; <a href="#">Security</a></p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════ SCRIPTS ══════════════════════════════════ -->
+<script>
+/* ── Hero canvas: particle field ── */
+(function() {
+  const canvas = document.getElementById('hero-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+  const N = 80;
+
+  function resize() {
+    W = canvas.width = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+
+  function mkParticle() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 1.5 + 0.3,
+      a: Math.random() * 0.5 + 0.1,
+    };
+  }
+
+  function init() {
+    resize();
+    particles = Array.from({length: N}, mkParticle);
+  }
+
+  let mouse = {x: -9999, y: -9999};
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // connections
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 120) {
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(0,212,255,${0.06 * (1 - dist/120)})`;
+          ctx.lineWidth = 0.5;
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // dots
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0,212,255,${p.a})`;
+      ctx.fill();
+
+      // mouse repulsion
+      const dx = p.x - mouse.x;
+      const dy = p.y - mouse.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 100) {
+        p.x += (dx / dist) * 0.8;
+        p.y += (dy / dist) * 0.8;
+      }
+
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0 || p.x > W) p.vx *= -1;
+      if (p.y < 0 || p.y > H) p.vy *= -1;
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  init();
+  draw();
+})();
+
+/* ── Marquee items ── */
+(function() {
+  const items = [
+    'On-Device AI Engine', 'WebAssembly Vision Core', 'Real-Time AR Overlay', 'Template Matching',
+    'Multi-Scale Detection', 'HOG Descriptors', 'RANSAC Verification', 'Compass + GPS Fusion',
+    'Voice Intelligence', 'Zero Cloud Architecture', 'IndexedDB Templates', 'Privacy by Design',
+    'PWA · Offline Ready', '60fps Detection', 'Rust WASM Core', 'Spatial Mapping',
+  ];
+  const inner = document.getElementById('marquee-inner');
+  const doubled = [...items, ...items];
+  doubled.forEach(txt => {
+    const el = document.createElement('div');
+    el.className = 'marquee-item';
+    el.textContent = txt;
+    inner.appendChild(el);
+  });
+})();
+
+/* ── Scroll reveal ── */
+(function() {
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        const delay = entry.target.dataset.delay || 0;
+        setTimeout(() => entry.target.classList.add('visible'), delay);
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach((el, i) => {
+    el.dataset.delay = (i % 4) * 80;
+    obs.observe(el);
+  });
+})();
+
+/* ── Stat counter ── */
+(function() {
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      const target = parseInt(el.dataset.target);
+      const suffix = el.dataset.suffix || '';
+      let start = 0;
+      const duration = 1600;
+      const step = (timestamp) => {
+        if (!start) start = timestamp;
+        const progress = Math.min((timestamp - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(eased * target) + suffix;
+        if (progress < 1) requestAnimationFrame(step);
+        else el.textContent = target + suffix;
+      };
+      requestAnimationFrame(step);
+      obs.unobserve(el);
+    });
+  }, { threshold: 0.5 });
+
+  document.querySelectorAll('.stat-num[data-target]').forEach(el => obs.observe(el));
+})();
+
+/* ── Vision word color cycling ── */
+(function() {
+  const tagline = document.getElementById('vision-tagline');
+  if (!tagline) return;
+  const words = tagline.querySelectorAll('.word');
+  const colors = ['#fff', '#00d4ff', '#a855f7', '#7b2ff7', '#fff', '#00d4ff'];
+  let idx = 0;
+  setInterval(() => {
+    words.forEach(w => w.style.color = '');
+    words[idx % words.length].style.color = colors[idx % colors.length];
+    idx++;
+  }, 700);
+})();
+
+/* ── Navbar scroll effect ── */
+(function() {
+  const nav = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 60) {
+      nav.style.background = 'rgba(10,10,10,0.92)';
+    } else {
+      nav.style.background = 'rgba(10,10,10,0.72)';
+    }
+  }, {passive: true});
+})();
+
+/* ── Smooth scroll for nav links ── */
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href').slice(1);
+    const target = document.getElementById(id);
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+
 </body>
 </html>
