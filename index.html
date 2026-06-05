@@ -1429,6 +1429,28 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     }
   });
 });
+
+/* ── PWA / navigation guard ─────────────────────────────────────
+   1. If explorer.html redirected here to show the landing page first
+      (sai_goto_explorer flag), clear the flag — the user is now on
+      index.html as intended.  No auto-forward; let them see the page.
+
+   2. Mark every CTA link that goes to explorer.html so that when the
+      user clicks it, sessionStorage gets 'sai_launched' set BEFORE
+      the navigation happens. explorer.html checks this flag and allows
+      the page to load without bouncing back.
+──────────────────────────────────────────────────────────────── */
+(function () {
+  // Clear any pending goto flag — user is on the landing page now
+  sessionStorage.removeItem('sai_goto_explorer');
+
+  // Tag all links pointing to explorer.html
+  document.querySelectorAll('a[href="explorer.html"]').forEach(function (link) {
+    link.addEventListener('click', function () {
+      sessionStorage.setItem('sai_launched', '1');
+    });
+  });
+})();
 </script>
 
 </body>

@@ -7,6 +7,30 @@
   <meta name="description" content="Point your camera, find anything. A spatial browser for the real world." />
   <meta name="theme-color" content="#02040a" />
 
+  <!--
+    ── Landing-page guard ──────────────────────────────────────────
+    If explorer.html is opened directly (PWA cold-launch, typed URL,
+    bookmark) with no referrer from this same site, send the user to
+    index.html first. Clicking any CTA on index.html sets document.referrer
+    so this check passes on the second visit within the same session.
+
+    sessionStorage key 'sai_launched' is set by index.html's CTA buttons
+    (see the inline script at the bottom of index.html), giving a reliable
+    same-session signal that the user came through the landing page.
+  -->
+  <script>
+    (function () {
+      var ref = document.referrer;
+      var sameOrigin = ref && new URL(ref).origin === location.origin;
+      var launched = sessionStorage.getItem('sai_launched');
+      if (!sameOrigin && !launched) {
+        // Preserve the intent: after landing page, auto-redirect to explorer
+        sessionStorage.setItem('sai_goto_explorer', '1');
+        location.replace('index.html');
+      }
+    })();
+  </script>
+
   <!-- PWA / mobile shell -->
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />

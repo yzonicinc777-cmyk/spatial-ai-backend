@@ -77,6 +77,28 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.hostname !== self.location.hostname) return;
 
+  // ── Navigation guard ──────────────────────────────────────────
+  // If a top-level navigation lands directly on explorer.html
+  // (e.g. PWA launched from a stale shortcut or cached entry),
+  // redirect to index.html so the landing page always shows first.
+  if (request.mode === 'navigate') {
+    const path = url.pathname;
+    // Bare / → index.html
+    if (path === '/') {
+      event.respondWith(Response.redirect('/index.html', 302));
+      return;
+    }
+    // Direct hit on explorer.html with NO referrer from same origin
+    // means the user launched the PWA or typed the URL directly.
+    const ref = request.referrer ? new URL(request.referrer) : null;
+    const cameFromSite = ref && ref.origin === self.location.origin;
+    if (path === '/explorer.html' && !cameFromSite) {
+      event.respondWith(Response.redirect('/index.html', 302));
+      return;
+    }
+  }
+  // ─────────────────────────────────────────────────────────────
+
   event.respondWith(
     caches.open(CACHE_NAME).then(async (cache) => {
       const cached = await cache.match(request);
