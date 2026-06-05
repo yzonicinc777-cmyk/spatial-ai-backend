@@ -29,7 +29,7 @@
 import init, {
   set_template,
   detect_template,
-  reset as clear_template,
+   reset,   
   configure,
 } from '/pkg/spatial_explorer_core.js';
 // ─── State ───────────────────────────────────────────────────────────────────
@@ -179,7 +179,7 @@ function _handleClear() {
   if (!_guardReady()) return;
 
   try {
-    clear_template();
+    reset();
     _hasTemplate = false;
     self.postMessage({ type: 'template_cleared' });
   } catch (err) {
