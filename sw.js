@@ -2,7 +2,7 @@
  * sw.js — Service Worker: stale-while-revalidate + precache.
  */
 
-const CACHE_NAME = 'spatial-ai-v1';
+const CACHE_NAME = 'spatial-ai-v2';
 
 const PRECACHE_ASSETS = [
   '/index.html',
@@ -84,17 +84,6 @@ self.addEventListener('fetch', (event) => {
     const path = url.pathname;
 
     
-
-    // Direct navigation to explorer.html (e.g. typed URL, PWA cold-launch,
-    // stale shortcut) → bounce to index.html first.
-    // The inline <script> guard in explorer.html uses sessionStorage 'sai_launched'
-    // (set by index.html CTA clicks) to allow entry on subsequent visits within
-    // the same session, but the SW acts as the first line of defence for cold loads.
-    if (path.endsWith('/explorer.html') || path === '/explorer.html') {
-      event.respondWith(Response.redirect('/index.html', 302));
-      return;
-    }
-
     // All other navigations load normally
     return;
   }
