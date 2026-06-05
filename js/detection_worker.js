@@ -32,7 +32,6 @@ import init, {
   clear_template,
   configure,
 } from '/pkg/spatial_explorer_core.js';
-
 // ─── State ───────────────────────────────────────────────────────────────────
 
 let _wasmReady   = false;

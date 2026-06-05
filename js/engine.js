@@ -175,7 +175,7 @@ export function initDetectionWorker() {
   if (_worker) return;
 
   try {
-    _worker = new Worker('./js/detection.worker.js', { type: 'module' });
+    _worker = new Worker('./js/detection_worker.js', { type: 'module' });
   } catch (err) {
     console.error('[detection] Worker creation failed:', err);
     updateStatus('Detection unavailable', 'warn');
@@ -291,16 +291,16 @@ export async function setTemplate(imgData) {
   }
   if (!imgData) return;
 
-  const clone  = imgData.data.buffer.slice(0);  // clone before transfer
-  const buffer = imgData.data.buffer;
+const buffer = imgData.data.buffer;
+const clone  = buffer.slice(0);               // clone for IndexedDB
 
-  _worker.postMessage(
-    {
-      type:    'set_template',
-      payload: { data: imgData.data, width: imgData.width, height: imgData.height },
-    },
-    [buffer]
-  );
+_worker.postMessage(
+  {
+    type:    'set_template',
+    payload: { data: new Uint8ClampedArray(clone), width: imgData.width, height: imgData.height },
+  },
+  [buffer]
+);
 
   const id = `capture_${Date.now()}`;
   incrementTemplate();

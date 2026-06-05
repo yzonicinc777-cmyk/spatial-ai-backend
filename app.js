@@ -21,8 +21,8 @@
  *   • Content-Security-Policy meta tag covers all external resources
  */
 
-import init, { configure, set_template, detect_template } from './pkg/spatial_explorer_core.js';
-
+// If using absolute paths:
+import init, { configure, set_template, detect_template } from '/pkg/spatial_explorer_core.js';
 import { initDOM, refs, refList, getState, setState,
          setSavedTemplates, loadSettings, loadTemplatesFromDB,
          saveSetting }                         from './js/core.js';
@@ -204,13 +204,16 @@ function _bindEvents() {
   }, { passive: false });
 
   // ── FAB (AI Lens) ─────────────────────────────────────────────────────────
-  refs('fabBtn')?.addEventListener('click', async () => {
-    navigateTo('camera');
-    const imgData = captureCentre();
-    if (imgData) await setTemplate(imgData);
-    
-    if (navigator.vibrate) navigator.vibrate([20, 20, 20]);
-  });
+ refs('fabBtn')?.addEventListener('click', async () => {
+  navigateTo('camera');
+  if (!getState('workerReady')) {
+    showToast('AI engine starting up, try again in a moment…', 'warn');
+    return;
+  }
+  const imgData = captureCentre();
+  if (imgData) await setTemplate(imgData);
+  if (navigator.vibrate) navigator.vibrate([20, 20, 20]);
+});
 
   // ── Detection buy button ──────────────────────────────────────────────────
   refs('detectionBuyBtn')?.addEventListener('click', () => {
