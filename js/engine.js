@@ -18,11 +18,12 @@
 import {
   setState, getState,
   incrementTemplate, incrementSave, addSavedTemplate,
+  refs, saveTemplateToDB,
 } from './core.js';
 
-import { refs }                from './core.js';
+
 import { showToast, updateStatus, navigateTo } from './render.js';
-import { saveTemplateToDB }    from './core.js';
+
 
 // ── NOTE: camera callbacks are injected at runtime to avoid circular deps ────
 // render.js calls setFrameCallback / setDrawCallbacks after both modules load.
@@ -175,7 +176,7 @@ export function initDetectionWorker() {
   if (_worker) return;
 
   try {
-    _worker = new Worker('./js/detection_worker.js', { type: 'module' });
+   _worker = new Worker('/js/detection_worker.js', { type: 'module' });
   } catch (err) {
     console.error('[detection] Worker creation failed:', err);
     updateStatus('Detection unavailable', 'warn');
@@ -238,7 +239,7 @@ function _handleWorkerMessage({ data }) {
 
 function _handleWorkerError(e) {
   _processingFrame = false;
-  console.error('[detection] Worker crash:', e.message, `${e.filename}:${e.lineno}`);
+ console.error('[detection] Worker crash:', e.message ?? '(no message — likely a load/import failure)', e.filename ? `${e.filename}:${e.lineno}` : '(check Network tab for 404 on worker script)');
   updateStatus('Detection engine crashed', 'error');
   showToast('AI engine error — reload to recover', 'error');
 }
@@ -291,15 +292,11 @@ export async function setTemplate(imgData) {
   }
   if (!imgData) return;
 
-const buffer = imgData.data.buffer;
-const clone  = buffer.slice(0);               // clone for IndexedDB
+const clone  = imgData.data.buffer.slice(0);   // clone for IndexedDB, never transferred
 
 _worker.postMessage(
-  {
-    type:    'set_template',
-    payload: { data: new Uint8ClampedArray(clone), width: imgData.width, height: imgData.height },
-  },
-  [buffer]
+  { type: 'set_template', payload: { data: new Uint8ClampedArray(clone), width: imgData.width, height: imgData.height } }
+  // No transfer list — clone is small enough, and we need it for saveTemplateToDB below
 );
 
   const id = `capture_${Date.now()}`;

@@ -29,7 +29,7 @@
 import init, {
   set_template,
   detect_template,
-  clear_template,
+  reset as clear_template,
   configure,
 } from '/pkg/spatial_explorer_core.js';
 // ─── State ───────────────────────────────────────────────────────────────────
@@ -226,12 +226,12 @@ function _parseResult(json) {
     return [];
   }
 
-  try {
+ try {
     const parsed = JSON.parse(json);
-    if (!Array.isArray(parsed)) return [];
-
-    // Validate each match object
-    return parsed.filter(m =>
+    // detect_template returns a DetectionResult object, not a bare array
+    const arr = Array.isArray(parsed) ? parsed : (parsed?.matches ?? []);
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(m =>
       typeof m.x         === 'number' &&
       typeof m.y         === 'number' &&
       typeof m.width     === 'number' &&
