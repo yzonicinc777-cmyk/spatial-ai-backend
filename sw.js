@@ -117,28 +117,22 @@ self.addEventListener('fetch', (event) => {
       // This is the key fix: without this, a Cloudflare Worker redirect
       // produces a response with type:'opaqueredirect' which the Cache
       // API and the browser both reject with the "redirect mode" error.
-      const freshRequest = new Request(request.url, {
-        method:      request.method,
-        headers:     request.headers,
-        redirect:    'follow',          // ← THE FIX
-        credentials: 'same-origin',
-        mode:        request.mode === 'navigate' ? 'navigate' : 'same-origin',
-      });
+      const freshRequest = new Request(request, {
+  redirect: 'follow'
+});
 
-      const networkFetch = fetch(freshRequest)
-        .then((networkResponse) => {
-          if (
-            networkResponse &&
-            networkResponse.ok &&
-            networkResponse.status === 200 &&
-            networkResponse.type !== 'opaque' &&
-            networkResponse.type !== 'opaqueredirect'
-          ) {
-            cache.put(request, networkResponse.clone());
-          }
-          return networkResponse;
-        })
-        .catch(() => cached); // network failed → fall back to cache
+      const networkFetch = fetch(request)
+  .then((networkResponse) => {
+    if (
+      networkResponse &&
+      networkResponse.ok &&
+      networkResponse.status === 200
+    ) {
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  })
+  .catch(() => cached); // network failed → fall back to cache
 
       // Stale-while-revalidate: serve cache instantly, revalidate in background
       return cached ?? networkFetch;
