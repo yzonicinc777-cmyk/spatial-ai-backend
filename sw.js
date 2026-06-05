@@ -3,7 +3,7 @@
  * Assets inside /js/ folder are correctly pathed.
  */
 
-const CACHE_NAME = 'spatial-ai-v5';
+const CACHE_NAME = 'spatial-ai-v6';
 
   const PRECACHE_ASSETS = [
   '/',
