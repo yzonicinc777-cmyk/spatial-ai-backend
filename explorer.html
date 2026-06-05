@@ -30,6 +30,7 @@
         sessionStorage.setItem('sai_goto_explorer', '1');
         location.replace('index.html');
       }
+      sessionStorage.setItem('sai_launched', '1');
       // Once the user navigates here legitimately, consume the flag so that
       // a manual reload of explorer.html still works within the same session.
       // Do NOT remove 'sai_launched' here — keep it so refreshes work fine.

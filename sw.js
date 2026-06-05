@@ -84,10 +84,14 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') {
     const path = url.pathname;
     // Bare / → index.html
-    if (path === '/') {
-      event.respondWith(Response.redirect('/index.html', 302));
-      return;
-    }
+    
+   if (path === '/' || path === '') {
+  event.respondWith(Response.redirect('/index.html', 302));
+  return;
+}
+// For all other navigations (including /explorer.html), let the page load normally.
+// The inline guard script in explorer.html handles the session check.
+return;
     // Always redirect top-level navigations to explorer.html back to index.html.
     // The inline <script> guard in explorer.html uses sessionStorage 'sai_launched'
     // (set by index.html CTA clicks) to allow entry — referrer-based checks are
