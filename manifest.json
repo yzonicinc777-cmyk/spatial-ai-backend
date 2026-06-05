@@ -2,7 +2,7 @@
   "name": "Spatial AI Explorer",
   "short_name": "SpatialAI",
   "description": "Point your camera, find anything.",
-  "start_url": "/",
+  "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#060c1a",
   "theme_color": "#0a0f1c",
