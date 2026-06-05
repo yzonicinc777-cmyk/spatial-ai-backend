@@ -20,20 +20,35 @@
   -->
   <script>
     (function () {
-      // 'sai_launched' is set by index.html when a CTA button is clicked.
-      // It is intentionally session-scoped so PWA cold-launches and direct
-      // URL entries always pass through the landing page first.
+      // ── Landing-page guard ───────────────────────────────────────────
+      // explorer.html must NEVER be the first page a user sees.
+      // Two-signal check — any one passing allows entry:
+      //
+      //  1. sessionStorage 'sai_launched'  — set by index.html CTA clicks.
+      //     Session-scoped so it resets on every new tab / PWA cold-launch.
+      //  2. document.referrer (same-origin) — user arrived via an in-page
+      //     link from this site (e.g. index.html CTA anchor).
+      //
+      //  Neither passes → redirect to index.html first.
+      // ──────────────────────────────────────────────────────────────────
       var launched = sessionStorage.getItem('sai_launched');
-      if (!launched) {
-        // Not arrived via a CTA click — send to landing page.
-        // Set a flag so index.html can show an auto-launch button if desired.
+
+      var referrerOk = false;
+      try {
+        if (document.referrer) {
+          referrerOk = new URL(document.referrer).origin === location.origin;
+        }
+      } catch (e) { /* ignore URL parse errors */ }
+
+      if (!launched && !referrerOk) {
+        // Cold launch / direct URL / bookmark / PWA shortcut — show landing first.
         sessionStorage.setItem('sai_goto_explorer', '1');
         location.replace('index.html');
+        throw new Error('Redirecting to landing page.');  // stop further execution
       }
+
+      // Persist the flag so refreshes within the same tab work fine.
       sessionStorage.setItem('sai_launched', '1');
-      // Once the user navigates here legitimately, consume the flag so that
-      // a manual reload of explorer.html still works within the same session.
-      // Do NOT remove 'sai_launched' here — keep it so refreshes work fine.
     })();
   </script>
 
