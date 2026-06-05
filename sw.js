@@ -5,7 +5,6 @@
 const CACHE_NAME = 'spatial-ai-v1';
 
 const PRECACHE_ASSETS = [
-  '/',
   '/index.html',
   '/explorer.html',
   '/core.css',
@@ -84,11 +83,7 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') {
     const path = url.pathname;
 
-    // Bare / → always show index.html (landing page)
-    if (path === '/' || path === '') {
-      event.respondWith(Response.redirect('/index.html', 302));
-      return;
-    }
+    
 
     // Direct navigation to explorer.html (e.g. typed URL, PWA cold-launch,
     // stale shortcut) → bounce to index.html first.
