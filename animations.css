@@ -389,11 +389,7 @@
   100% { border-color: rgba(255,255,255,0.100); }
 }
 
-/* Applied after entry animation ends */
-.gemini-bar {
-  /* Chromatic flicker layered via animation-delay */
-  /* Uses animation list — order matters, geminiBoxHalo wins box-shadow */
-}
+
 
 /* ── L4  Press wave — radial ripple from tap point ── */
 @keyframes geminiPressWave {
@@ -402,9 +398,7 @@
   100% { transform: translateX(-50%) scale(1.00); opacity: 1; box-shadow: 0 0 0 24px rgba(0,212,255,0.00); }
 }
 
-.gemini-bar:active {
-  animation: geminiPressWave 0.36s var(--ease-expo) both;
-}
+
 
 /* ── L5  LISTENING STATE — neural pulse cascade ── */
 

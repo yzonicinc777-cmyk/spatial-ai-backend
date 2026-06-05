@@ -671,9 +671,11 @@
     }
 
     #voice-bar {
-      left: calc(max(var(--sp-4), env(safe-area-inset-left)));
-      right: calc(max(var(--sp-4), env(safe-area-inset-right)));
-    }
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  width: calc(100vw - max(32px, calc(env(safe-area-inset-left) + env(safe-area-inset-right) + 24px)));
+}
   }
 }
 
@@ -975,7 +977,7 @@
     transform: translateX(-50%);
     width: calc(100vw - 16px);
   }
-  
+
   .sidebar-toggle { left: 8px; }
 }
 

@@ -656,7 +656,7 @@ body::before {
 }
 
 /* Inner pages (not camera) get the ambient mesh background for colour consistency */
-#explore-page.active,
+
 #profile-page.active,
 #settings-page.active {
   background:
