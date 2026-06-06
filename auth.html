@@ -1435,11 +1435,15 @@ document.getElementById('forgot-link').addEventListener('click', async function(
 
 /* ─── Check if already logged in ─────────────────────────────── */
 (function() {
-  const token = sessionStorage.getItem('sai_auth_token');
-  if (token) {
-    // Already have a token — could validate with server and redirect
-    // For now just let them see the page (they can sign in again)
-  }
+ const token = sessionStorage.getItem('sai_auth_token');
+if (token) {
+    // Already authenticated — skip the form, go straight to the app.
+    // Check the return URL first (set by requireAuth in auth-guard.js),
+    // fall back to explorer.html.
+    const returnTo = sessionStorage.getItem('sai_auth_return') || 'explorer.html';
+    sessionStorage.removeItem('sai_auth_return');
+    location.replace(returnTo);
+}
 
   // If arrived here because a CTA was clicked, check URL param
   const params = new URLSearchParams(location.search);

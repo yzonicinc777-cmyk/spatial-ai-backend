@@ -83,10 +83,19 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') {
     const path = url.pathname;
 
-    
+    // If the user navigates directly to explorer.html (PWA cold launch,
+    // bookmark, typed URL, stale cached shortcut), send them to auth.html.
+    // auth.html will skip the form and forward to explorer.html automatically
+    // if a valid token is already in sessionStorage (see Bug 2 fix).
+    if (path === '/explorer.html' || path.endsWith('/explorer.html')) {
+      return event.respondWith(
+        Response.redirect('/auth.html', 302)
+      );
+    }
+
     // All other navigations load normally
     return;
-  }
+}
   // ─────────────────────────────────────────────────────────────
 
   event.respondWith(

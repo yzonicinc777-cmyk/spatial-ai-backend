@@ -1450,11 +1450,9 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 sessionStorage.removeItem('sai_goto_explorer');
 
   // Tag all links pointing to explorer.html so clicking them marks the session
-  document.querySelectorAll('a[href="auth.html"]').forEach(function (link) {
-    link.addEventListener('click', function () {
-      sessionStorage.setItem('sai_launched', '1');
-    });
-  });
+  // AFTER (remove the listener entirely — auth.html handles the flow):
+// Auth flow: index.html CTAs → auth.html → requireAuth check → explorer.html
+// No sessionStorage flag needed; auth-guard.js manages the token.
 })();
 </script>
 

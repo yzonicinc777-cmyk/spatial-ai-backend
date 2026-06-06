@@ -23,7 +23,7 @@
 
 // If using absolute paths:
 import { requireAuth, getUser } from '/js/auth-guard.js';
-await requireAuth();
+
 
 // Optional: show the user's name in the profile page
 const user = getUser();
