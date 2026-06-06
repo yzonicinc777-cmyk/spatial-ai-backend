@@ -22,6 +22,15 @@
  */
 
 // If using absolute paths:
+import { requireAuth, getUser } from '/js/auth-guard.js';
+await requireAuth();
+
+// Optional: show the user's name in the profile page
+const user = getUser();
+if (user) {
+  // e.g. setText('profileName', user.name);
+}
+
 import init, { configure, set_template, detect_template } from '/pkg/spatial_explorer_core.js';
 import { initDOM, refs, refList, getState, setState,
          setSavedTemplates, loadSettings, loadTemplatesFromDB,

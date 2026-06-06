@@ -18,39 +18,10 @@
     (see the inline script at the bottom of index.html), giving a reliable
     same-session signal that the user came through the landing page.
   -->
-  <script>
-    (function () {
-      // ── Landing-page guard ───────────────────────────────────────────
-      // explorer.html must NEVER be the first page a user sees.
-      // Two-signal check — any one passing allows entry:
-      //
-      //  1. sessionStorage 'sai_launched'  — set by index.html CTA clicks.
-      //     Session-scoped so it resets on every new tab / PWA cold-launch.
-      //  2. document.referrer (same-origin) — user arrived via an in-page
-      //     link from this site (e.g. index.html CTA anchor).
-      //
-      //  Neither passes → redirect to index.html first.
-      // ──────────────────────────────────────────────────────────────────
-      var launched = sessionStorage.getItem('sai_launched');
-
-      var referrerOk = false;
-      try {
-        if (document.referrer) {
-          referrerOk = new URL(document.referrer).origin === location.origin;
-        }
-      } catch (e) { /* ignore URL parse errors */ }
-
-      if (!launched && !referrerOk) {
-        // Cold launch / direct URL / bookmark / PWA shortcut — show landing first.
-        sessionStorage.setItem('sai_goto_explorer', '1');
-        location.replace('index.html');
-        throw new Error('Redirecting to landing page.');  // stop further execution
-      }
-
-      // Persist the flag so refreshes within the same tab work fine.
-      sessionStorage.setItem('sai_launched', '1');
-    })();
-  </script>
+  <script type="module">
+  import { requireAuth } from '/js/auth-guard.js';
+  await requireAuth(); // redirects to auth.html if not logged in
+</script>
 
   <!-- PWA / mobile shell -->
   <meta name="mobile-web-app-capable" content="yes" />
