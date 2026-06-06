@@ -19,7 +19,7 @@
     same-session signal that the user came through the landing page.
   -->
   <script type="module">
-  import { requireAuth } from '/js/auth-guard.js';
+  import { requireAuth } from './js/auth-guard.js';
   await requireAuth(); // redirects to auth.html if not logged in
 </script>
 
