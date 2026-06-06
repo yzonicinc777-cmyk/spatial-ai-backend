@@ -32,8 +32,16 @@ export function setUser(u) { sessionStorage.setItem(USER_KEY, JSON.stringify(u))
 // ── JWT decode (no verification — trust server, just read claims) ──
 function decodeJWT(token) {
   try {
+    // Supports both real JWTs (base64url payload) and the simulated
+    // token produced by auth.html's _simulateAuth() helper, whose
+    // middle segment is plain base64.
     const payload = token.split('.')[1];
-    return JSON.parse(atob(payload.replace(/-/g,'+').replace(/_/g,'/')));
+    if (!payload) return null;
+    // Normalise base64url → base64, then decode
+    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/').padEnd(
+      payload.length + (4 - payload.length % 4) % 4, '='
+    ));
+    return JSON.parse(json);
   } catch {
     return null;
   }
