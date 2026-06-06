@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Spatial AI — Sign In</title>
 <meta name="description" content="Sign in to Spatial AI Explorer by Yzonic.corp"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230a0f1c'/><circle cx='96' cy='96' r='72' fill='none' stroke='%2300d4ff' stroke-width='8'/><polygon points='96,44 106,84 148,96 106,108 96,148 86,108 44,96 86,84' fill='%2300d4ff'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
@@ -1254,29 +1255,19 @@ function showToast(msg, type='success') {
   toastTimer = setTimeout(()=>t.classList.remove('show'), 3500);
 }
 
-/* ─── API helper ──────────────────────────────────────────────── */
-async function callAPI(endpoint, body) {
-  // No backend on GitHub Pages — simulate auth locally
-  const fakeToken = btoa(JSON.stringify({ exp: Math.floor(Date.now()/1000) + 86400 }));
-  const token = `eyJ.${fakeToken}.sig`; // fake JWT-shaped token
-
-  if (endpoint === 'register') {
-    sessionStorage.setItem('sai_auth_token', token);
-    sessionStorage.setItem('sai_user', JSON.stringify({ name: body.name || 'User', email: body.email }));
-    sessionStorage.setItem('sai_launched', '1');
-    showToast('Account created! Launching…', 'success');
-    setTimeout(() => location.href = 'explorer.html', 1200);
-    return;
-  }
-  if (endpoint === 'signin') {
-    sessionStorage.setItem('sai_auth_token', token);
-    sessionStorage.setItem('sai_user', JSON.stringify({ name: 'User', email: body.email }));
-    sessionStorage.setItem('sai_launched', '1');
-    showToast('Signed in! Launching explorer…', 'success');
-    setTimeout(() => location.href = 'explorer.html', 1200);
-    return;
-  }
+/* ─── Auth helper (no-backend / static-hosting mode) ─────────── */
+function _simulateAuth(name, email) {
+  const payload = btoa(JSON.stringify({
+    sub: email,
+    name: name || 'User',
+    exp: Math.floor(Date.now() / 1000) + 86400
+  }));
+  const token = `eyJhbGciOiJIUzI1NiJ9.${payload}.simulated`;
+  sessionStorage.setItem('sai_auth_token', token);
+  sessionStorage.setItem('sai_user', JSON.stringify({ name: name || 'User', email }));
+  sessionStorage.setItem('sai_launched', '1');
 }
+
 /* ─── Sign In submission ──────────────────────────────────────── */
 document.getElementById('signin-form').addEventListener('submit', async function(e) {
   e.preventDefault();
@@ -1294,23 +1285,22 @@ document.getElementById('signin-form').addEventListener('submit', async function
   btn.classList.add('loading'); btn.disabled = true;
 
   try {
-    const { ok, data } = await callAPI('login', { email, password });
-    if (ok) {
-      // Store session token
-      sessionStorage.setItem('sai_auth_token', data.token);
-      sessionStorage.setItem('sai_user', JSON.stringify({ name: data.name, email: data.email }));
-      sessionStorage.setItem('sai_launched', '1');
+    // ── If you have a real backend, replace the block below ──────
+    // const res  = await fetch('/api/auth/login', { method:'POST',
+    //   headers:{'Content-Type':'application/json'},
+    //   body: JSON.stringify({ email, password }), credentials:'include' });
+    // const data = await res.json();
+    // if (!res.ok) { showToast(data.message||'Invalid credentials','error'); return; }
+    // sessionStorage.setItem('sai_auth_token', data.token);
+    // sessionStorage.setItem('sai_user', JSON.stringify({ name:data.name, email:data.email }));
+    // sessionStorage.setItem('sai_launched', '1');
+    // ── End real-backend block ───────────────────────────────────
 
-      // Check if 2FA required
-      if (data.twofa_required) {
-        show2FA();
-      } else {
-        showToast('Signed in! Launching explorer…');
-        setTimeout(() => location.href = 'explorer.html', 1200);
-      }
-    } else {
-      showToast(data.message || 'Invalid credentials', 'error');
-    }
+    // Static / no-backend simulation:
+    _simulateAuth('User', email);
+    showToast('Signed in! Launching explorer…', 'success');
+    setTimeout(() => { location.href = 'explorer.html'; }, 1200);
+
   } catch(err) {
     showToast('Network error — please try again', 'error');
   } finally {
@@ -1340,16 +1330,22 @@ document.getElementById('signup-form').addEventListener('submit', async function
   btn.classList.add('loading'); btn.disabled = true;
 
   try {
-    const { ok, data } = await callAPI('register', { name, email, password });
-    if (ok) {
-      sessionStorage.setItem('sai_auth_token', data.token);
-      sessionStorage.setItem('sai_user', JSON.stringify({ name: data.name, email: data.email }));
-      sessionStorage.setItem('sai_launched', '1');
-      showToast('Account created! Welcome to Spatial AI 🚀');
-      setTimeout(() => location.href = 'explorer.html', 1500);
-    } else {
-      showToast(data.message || 'Registration failed', 'error');
-    }
+    // ── If you have a real backend, replace the block below ──────
+    // const res  = await fetch('/api/auth/register', { method:'POST',
+    //   headers:{'Content-Type':'application/json'},
+    //   body: JSON.stringify({ name, email, password }), credentials:'include' });
+    // const data = await res.json();
+    // if (!res.ok) { showToast(data.message||'Registration failed','error'); return; }
+    // sessionStorage.setItem('sai_auth_token', data.token);
+    // sessionStorage.setItem('sai_user', JSON.stringify({ name:data.name, email:data.email }));
+    // sessionStorage.setItem('sai_launched', '1');
+    // ── End real-backend block ───────────────────────────────────
+
+    // Static / no-backend simulation:
+    _simulateAuth(name, email);
+    showToast('Account created! Welcome to Spatial AI 🚀', 'success');
+    setTimeout(() => { location.href = 'explorer.html'; }, 1500);
+
   } catch(err) {
     showToast('Network error — please try again', 'error');
   } finally {

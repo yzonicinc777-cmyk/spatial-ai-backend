@@ -163,7 +163,7 @@ app.use(express.static(path.join(__dirname, '.'), {
   index: 'index.html',
   extensions: ['html'],
 }));
-
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 // ── Rate limiters ──────────────────────────────────────────────
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min
