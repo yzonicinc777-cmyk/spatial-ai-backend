@@ -1449,7 +1449,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 sessionStorage.removeItem('sai_goto_explorer');
 
   // Tag all links pointing to explorer.html so clicking them marks the session
-  document.querySelectorAll('a[href="explorer.html"]').forEach(function (link) {
+  document.querySelectorAll('a[href="auth.html"]').forEach(function (link) {
     link.addEventListener('click', function () {
       sessionStorage.setItem('sai_launched', '1');
     });
