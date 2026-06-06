@@ -22,7 +22,7 @@
  */
 
 // If using absolute paths:
-import { requireAuth, getUser } from '/js/auth-guard.js';
+import { requireAuth, getUser } from './js/auth-guard.js';
 
 
 // Optional: show the user's name in the profile page
