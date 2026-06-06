@@ -1435,19 +1435,28 @@ document.getElementById('forgot-link').addEventListener('click', async function(
 
 /* ─── Check if already logged in ─────────────────────────────── */
 (function() {
- const token = sessionStorage.getItem('sai_auth_token');
-if (token) {
-    // Already authenticated — skip the form, go straight to the app.
-    // Check the return URL first (set by requireAuth in auth-guard.js),
-    // fall back to explorer.html.
-    const returnTo = sessionStorage.getItem('sai_auth_return') || 'explorer.html';
-    sessionStorage.removeItem('sai_auth_return');
-    location.replace(returnTo);
-}
-
-  // If arrived here because a CTA was clicked, check URL param
+  const token  = sessionStorage.getItem('sai_auth_token');
   const params = new URLSearchParams(location.search);
-  if (params.get('mode') === 'signup') showSignup();
+  const mode   = params.get('mode');
+
+  if (token) {
+    // Only auto-forward if the user didn't explicitly navigate here to
+    // log out or switch accounts (i.e. no ?logout=1 param).
+    if (params.get('logout') !== '1') {
+      const returnTo = sessionStorage.getItem('sai_auth_return') || 'explorer.html';
+      sessionStorage.removeItem('sai_auth_return');
+      location.replace(returnTo);
+      return; // redirect in progress, stop here
+    }
+    // ?logout=1 → clear the session and fall through to show the form
+    sessionStorage.removeItem('sai_auth_token');
+    sessionStorage.removeItem('sai_user');
+    sessionStorage.removeItem('sai_launched');
+  }
+
+  // Open signup tab when CTAs pass ?mode=signup
+  // (signin tab is already active by default)
+  if (mode === 'signup') showSignup();
 })();
 </script>
 </body>
