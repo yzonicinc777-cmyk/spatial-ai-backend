@@ -1256,16 +1256,27 @@ function showToast(msg, type='success') {
 
 /* ─── API helper ──────────────────────────────────────────────── */
 async function callAPI(endpoint, body) {
-  const res = await fetch('/api/auth/' + endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'same-origin',
-    body: JSON.stringify(body)
-  });
-  const data = await res.json();
-  return { ok: res.ok, status: res.status, data };
-}
+  // No backend on GitHub Pages — simulate auth locally
+  const fakeToken = btoa(JSON.stringify({ exp: Math.floor(Date.now()/1000) + 86400 }));
+  const token = `eyJ.${fakeToken}.sig`; // fake JWT-shaped token
 
+  if (endpoint === 'register') {
+    sessionStorage.setItem('sai_auth_token', token);
+    sessionStorage.setItem('sai_user', JSON.stringify({ name: body.name || 'User', email: body.email }));
+    sessionStorage.setItem('sai_launched', '1');
+    showToast('Account created! Launching…', 'success');
+    setTimeout(() => location.href = 'explorer.html', 1200);
+    return;
+  }
+  if (endpoint === 'signin') {
+    sessionStorage.setItem('sai_auth_token', token);
+    sessionStorage.setItem('sai_user', JSON.stringify({ name: 'User', email: body.email }));
+    sessionStorage.setItem('sai_launched', '1');
+    showToast('Signed in! Launching explorer…', 'success');
+    setTimeout(() => location.href = 'explorer.html', 1200);
+    return;
+  }
+}
 /* ─── Sign In submission ──────────────────────────────────────── */
 document.getElementById('signin-form').addEventListener('submit', async function(e) {
   e.preventDefault();
