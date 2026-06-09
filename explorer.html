@@ -6,23 +6,6 @@
   <title>Spatial AI • Explorer</title>
   <meta name="description" content="Point your camera, find anything. A spatial browser for the real world." />
   <meta name="theme-color" content="#02040a" />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230a0f1c'/><circle cx='96' cy='96' r='72' fill='none' stroke='%2300d4ff' stroke-width='8'/><polygon points='96,44 106,84 148,96 106,108 96,148 86,108 44,96 86,84' fill='%2300d4ff'/></svg>">
-
-  <!--
-    ── Landing-page guard ──────────────────────────────────────────
-    If explorer.html is opened directly (PWA cold-launch, typed URL,
-    bookmark) with no referrer from this same site, send the user to
-    index.html first. Clicking any CTA on index.html sets document.referrer
-    so this check passes on the second visit within the same session.
-
-    sessionStorage key 'sai_launched' is set by index.html's CTA buttons
-    (see the inline script at the bottom of index.html), giving a reliable
-    same-session signal that the user came through the landing page.
-  -->
-  <script type="module">
-  import { requireAuth } from './js/auth-guard.js';
-  await requireAuth();
-</script>
 
   <!-- PWA / mobile shell -->
   <meta name="mobile-web-app-capable" content="yes" />
@@ -64,12 +47,6 @@
   <!-- Module preloads -->
   <link rel="modulepreload" href="/app.js" crossorigin="anonymous" />
   <link rel="modulepreload" href="/pkg/spatial_explorer_core.js" crossorigin="anonymous" />
-  <style id="auth-cloak">body { visibility: hidden !important; }</style>
-<script type="module">
-  import { requireAuth } from './js/auth-guard.js';
-  await requireAuth();
-  document.getElementById('auth-cloak')?.remove();
-</script>
 </head>
 <body>
 
