@@ -1299,7 +1299,11 @@ document.getElementById('signin-form').addEventListener('submit', async function
     // Static / no-backend simulation:
     _simulateAuth('User', email);
     showToast('Signed in! Launching explorer…', 'success');
-    setTimeout(() => { location.replace('explorer.html'); }, 1200);
+    setTimeout(function() {
+      var ret = sessionStorage.getItem('sai_auth_return') || '';
+      sessionStorage.removeItem('sai_auth_return');
+      location.replace(ret.indexOf('explorer.html') !== -1 ? ret : 'explorer.html');
+    }, 1200);
 
   } catch(err) {
     showToast('Network error — please try again', 'error');
@@ -1344,7 +1348,11 @@ document.getElementById('signup-form').addEventListener('submit', async function
     // Static / no-backend simulation:
     _simulateAuth(name, email);
     showToast('Account created! Welcome to Spatial AI 🚀', 'success');
-   setTimeout(() => { location.replace('explorer.html'); }, 1500);
+    setTimeout(function() {
+      var ret = sessionStorage.getItem('sai_auth_return') || '';
+      sessionStorage.removeItem('sai_auth_return');
+      location.replace(ret.indexOf('explorer.html') !== -1 ? ret : 'explorer.html');
+    }, 1500);
 
   } catch(err) {
     showToast('Network error — please try again', 'error');
@@ -1472,30 +1480,22 @@ return;
     }
   }
 
-  // FIXED — only redirect if user was bounced here by explorer's guard
-if (token) {
-  var returnTo = sessionStorage.getItem('sai_auth_return');
-  var cameFromExplorer = returnTo && returnTo.indexOf('explorer.html') !== -1;
-  sessionStorage.removeItem('sai_auth_return');
-
-  if (cameFromExplorer) {
-    location.replace(returnTo);
+  // Valid session — always forward to explorer.html.
+  // Honour a stored return URL if it points to explorer, otherwise
+  // just go to explorer.html directly.
+  if (token) {
+    var returnTo = sessionStorage.getItem('sai_auth_return') || '';
+    sessionStorage.removeItem('sai_auth_return');
+    if (returnTo && returnTo.indexOf('explorer.html') !== -1) {
+      location.replace(returnTo);
+    } else {
+      location.replace('explorer.html');
+    }
     return;
   }
-  // User clicked "Try it Free" or nav CTA while already logged in.
-  // Clear the stale token so they see the form and can log in fresh.
-  sessionStorage.removeItem('sai_auth_token');
-  sessionStorage.removeItem('sai_user');
-  sessionStorage.removeItem('sai_launched');
-}
- else {
-    // No token — clean up any stale return URL that points
-    // somewhere other than explorer (defensive hygiene)
-    var ret = sessionStorage.getItem('sai_auth_return');
-    if (ret && ret.indexOf('explorer.html') === -1) {
-      sessionStorage.removeItem('sai_auth_return');
-    }
-  }
+
+  // No valid token — clean up any stale return URL
+  sessionStorage.removeItem('sai_auth_return');
 
   // Show the correct tab based on ?mode=
   if (mode === 'signup') showSignup();

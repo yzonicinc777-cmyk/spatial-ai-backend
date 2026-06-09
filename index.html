@@ -1431,28 +1431,55 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   });
 });
 
-/* ── PWA / navigation guard ─────────────────────────────────────
-   1. If explorer.html redirected here to show the landing page first
-      (sai_goto_explorer flag), clear the flag — the user is now on
-      index.html as intended.  No auto-forward; let them see the page.
+/* ── Auth-aware CTA guard ────────────────────────────────────────
+   Every button / link on this landing page that would take the user
+   into the app is intercepted here.
 
-   2. Mark every CTA link that goes to explorer.html so that when the
-      user clicks it, sessionStorage gets 'sai_launched' set BEFORE
-      the navigation happens. explorer.html checks this flag and allows
-      the page to load without bouncing back.
+   • If the user already has a valid, non-expired session token they
+     are sent straight to explorer.html — no need to sign in again.
+
+   • If they are NOT authenticated every such link goes to auth.html
+     (preserving any ?mode= the link already had, defaulting to signup).
+
+   This replaces the old "sai_launched / sai_goto_explorer" flags.
 ──────────────────────────────────────────────────────────────── */
 (function () {
-  // If the user was on explorer.html and got bounced here by the SW,
-  // 'sai_goto_explorer' will be set. In that case they already passed
-  // through the landing page previously in this session — let them
-  // go straight back to explorer.html without re-reading the landing page.
- // Just clean up the stale flag, never auto-forward from index.html
-sessionStorage.removeItem('sai_goto_explorer');
+  // ── 1. Clean up any stale session flags ─────────────────────
+  sessionStorage.removeItem('sai_goto_explorer');
 
-  // Tag all links pointing to explorer.html so clicking them marks the session
-  // AFTER (remove the listener entirely — auth.html handles the flow):
-// Auth flow: index.html CTAs → auth.html → requireAuth check → explorer.html
-// No sessionStorage flag needed; auth-guard.js manages the token.
+  // ── 2. Check whether the user already has a live session ────
+  function hasValidToken() {
+    var token = sessionStorage.getItem('sai_auth_token');
+    if (!token) return false;
+    try {
+      var b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      b64 = b64.padEnd(b64.length + (4 - b64.length % 4) % 4, '=');
+      var payload = JSON.parse(atob(b64));
+      // Treat as invalid if within 60 s of expiry
+      return !(payload.exp && payload.exp * 1000 < Date.now() + 60000);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // ── 3. Intercept every CTA that points at auth.html ─────────
+  //    (All landing-page CTAs already point there; we just decide
+  //     whether to let auth.html run or skip straight to explorer.)
+  document.querySelectorAll('a[href*="auth.html"], button[data-goto-auth]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      if (hasValidToken()) {
+        // Already authenticated — bypass auth page entirely
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        location.href = 'explorer.html';
+      }
+      // Not authenticated — let the default href navigate to auth.html
+    });
+  });
+
+  // ── 4. Also handle the primary hero CTA which is a plain <a> ─
+  //    (Covered by the selector above, but belt-and-suspenders:
+  //     if any CTA uses location.href instead of href attr, catch it.)
 })();
 </script>
 
