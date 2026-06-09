@@ -14,7 +14,7 @@
 // ── Constants ─────────────────────────────────────────────────────
 const AUTH_TOKEN_KEY = 'sai_auth_token';
 const USER_KEY       = 'sai_user';
-const AUTH_PAGE      = '/auth.html';
+const AUTH_PAGE = 'auth.html';
 const REFRESH_URL    = '/api/auth/refresh';
 const ME_URL         = '/api/auth/me';
 

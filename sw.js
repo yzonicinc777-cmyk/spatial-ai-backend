@@ -2,7 +2,7 @@
  * sw.js — Service Worker: stale-while-revalidate + precache.
  */
 
-const CACHE_NAME = 'spatial-ai-v3';
+const CACHE_NAME = 'spatial-ai-v4';
 
 const PRECACHE_ASSETS = [
   '/index.html',
@@ -76,26 +76,8 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.hostname !== self.location.hostname) return;
 
-  // ── Navigation guard ──────────────────────────────────────────
-  // If a top-level navigation lands directly on explorer.html
-  // (e.g. PWA launched from a stale shortcut or cached entry),
-  // redirect to index.html so the landing page always shows first.
-  if (request.mode === 'navigate') {
-    const path = url.pathname;
-
-    // If the user navigates directly to explorer.html without a valid session
-    // (PWA cold launch, bookmark, typed URL, stale cached shortcut),
-    // send them to the sign-in page. auth.html will check for a valid token
-    // and either show the form or forward to explorer.html automatically.
-    if (path === '/explorer.html' || path.endsWith('/explorer.html')) {
-      return event.respondWith(
-        Response.redirect('/auth.html?mode=signin', 302)
-      );
-    }
-
-    // All other navigations load normally
-    return;
-}
+  // Navigation guard removed — explorer.html has its own synchronous
+// JS auth gate in <head> that handles all unauthenticated access.
   // ─────────────────────────────────────────────────────────────
 
   event.respondWith(

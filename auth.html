@@ -1299,7 +1299,7 @@ document.getElementById('signin-form').addEventListener('submit', async function
     // Static / no-backend simulation:
     _simulateAuth('User', email);
     showToast('Signed in! Launching explorer…', 'success');
-    setTimeout(() => { location.href = 'explorer.html'; }, 1200);
+    setTimeout(() => { location.replace('explorer.html'); }, 1200);
 
   } catch(err) {
     showToast('Network error — please try again', 'error');
@@ -1344,7 +1344,7 @@ document.getElementById('signup-form').addEventListener('submit', async function
     // Static / no-backend simulation:
     _simulateAuth(name, email);
     showToast('Account created! Welcome to Spatial AI 🚀', 'success');
-    setTimeout(() => { location.href = 'explorer.html'; }, 1500);
+   setTimeout(() => { location.replace('explorer.html'); }, 1500);
 
   } catch(err) {
     showToast('Network error — please try again', 'error');
@@ -1435,7 +1435,7 @@ document.getElementById('forgot-link').addEventListener('click', async function(
 
 /* ─── Check if already logged in ─────────────────────────────── */
 (function() {
-  
+
   const params = new URLSearchParams(location.search);
   const mode   = params.get('mode');
 
