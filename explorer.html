@@ -92,11 +92,6 @@
   <link rel="modulepreload" href="/app.js" crossorigin="anonymous" />
   <link rel="modulepreload" href="/pkg/spatial_explorer_core.js" crossorigin="anonymous" />
   <style id="auth-cloak">body { visibility: hidden !important; }</style>
-<script type="module">
-  import { requireAuth } from './js/auth-guard.js';
-  await requireAuth();
-  document.getElementById('auth-cloak')?.remove();
-</script>
 </head>
 <body>
 

@@ -22,10 +22,14 @@
  */
 
 // If using absolute paths:
-import { requireAuth, getUser } from './js/auth-guard.js';
+import { getToken } from './js/auth-guard.js';
 
-// Enforce auth before any app logic runs
-await requireAuth();
+// Enforce auth before any app logic runs — check token directly,
+// no network refresh (explorer.html's synchronous gate already handled this)
+(function() {
+  var token = getToken();
+  if (!token) { location.replace('auth.html?mode=signin'); throw new Error('Not authenticated'); }
+})();
 
 // Optional: show the user's name in the profile page
 const user = getUser();
