@@ -19,31 +19,9 @@
     (see the inline script at the bottom of index.html), giving a reliable
     same-session signal that the user came through the landing page.
   -->
-  <script>
-  // Synchronous auth gate — runs before any page content renders
- (function() {
-  var token = sessionStorage.getItem('sai_auth_token');
-  if (!token) {
-    sessionStorage.setItem('sai_auth_return', location.href);
-    location.replace('auth.html?mode=signin');
-    return;
-  }
-  // Also check token expiry synchronously
-  try {
-    var payload = JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
-    if (payload.exp && payload.exp * 1000 < Date.now()) {
-      sessionStorage.removeItem('sai_auth_token');
-      sessionStorage.removeItem('sai_user');
-      sessionStorage.setItem('sai_auth_return', location.href);
-      location.replace('auth.html?mode=signin');
-    }
-  } catch(e) {
-    // Malformed token — treat as unauthenticated
-    sessionStorage.removeItem('sai_auth_token');
-    sessionStorage.setItem('sai_auth_return', location.href);
-    location.replace('auth.html?mode=signin');
-  }
-})();
+  <script type="module">
+  import { requireAuth } from './js/auth-guard.js';
+  await requireAuth();
 </script>
 
   <!-- PWA / mobile shell -->
