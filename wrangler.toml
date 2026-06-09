@@ -1,0 +1,17 @@
+﻿name = "spatial-ai-explorer"
+compatibility_date = "2024-01-01"
+
+[assets]
+directory = "./"
+exclude = [
+  "node_modules/**",
+  "backend/**",
+  "core/**",
+  "pkg/**",
+  ".env",
+  "*.log",
+  ".wrangler/**",
+  "server.js",
+  "package.json",
+  "package-lock.json"
+]
