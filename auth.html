@@ -1445,7 +1445,8 @@ document.getElementById('forgot-link').addEventListener('click', async function(
     sessionStorage.removeItem('sai_launched');
     sessionStorage.removeItem('sai_auth_return');
     if (mode === 'signup') showSignup();
-    return;
+else showSignin();
+return;
   }
 
   // Check for a valid, non-expired token
@@ -1471,30 +1472,23 @@ document.getElementById('forgot-link').addEventListener('click', async function(
     }
   }
 
-  if (token) {
-    // ── Valid token present ─────────────────────────────────────
-    // ONLY auto-forward when the user was redirected HERE by
-    // explorer.html's guard (sai_auth_return is set).
-    // In every other case (direct link, nav-bar CTA, bookmark) we
-    // show the auth page — the user clicked it intentionally.
-    var returnTo = sessionStorage.getItem('sai_auth_return');
-    var cameFromExplorer = returnTo && returnTo.indexOf('explorer.html') !== -1;
+  // FIXED — only redirect if user was bounced here by explorer's guard
+if (token) {
+  var returnTo = sessionStorage.getItem('sai_auth_return');
+  var cameFromExplorer = returnTo && returnTo.indexOf('explorer.html') !== -1;
+  sessionStorage.removeItem('sai_auth_return');
 
-    if (cameFromExplorer) {
-      // They were already authenticated and got bounced here by
-      // the explorer guard — send them straight back.
-      sessionStorage.removeItem('sai_auth_return');
-      location.replace(returnTo);
-      return;
-    }
-
-    // User arrived via a CTA / nav link while a session was still
-    // alive. Clear the stale return URL (if any) and show the form
-    // so they can sign in with a different account or just confirm.
-    sessionStorage.removeItem('sai_auth_return');
-    // Do NOT clear the token here — the submit handler will
-    // overwrite it. Just show the form normally.
-  } else {
+  if (cameFromExplorer) {
+    location.replace(returnTo);
+    return;
+  }
+  // User clicked "Try it Free" or nav CTA while already logged in.
+  // Clear the stale token so they see the form and can log in fresh.
+  sessionStorage.removeItem('sai_auth_token');
+  sessionStorage.removeItem('sai_user');
+  sessionStorage.removeItem('sai_launched');
+}
+ else {
     // No token — clean up any stale return URL that points
     // somewhere other than explorer (defensive hygiene)
     var ret = sessionStorage.getItem('sai_auth_return');
