@@ -1435,32 +1435,53 @@ document.getElementById('forgot-link').addEventListener('click', async function(
 
 /* ─── Check if already logged in ─────────────────────────────── */
 (function() {
-  const token  = sessionStorage.getItem('sai_auth_token');
+  
   const params = new URLSearchParams(location.search);
   const mode   = params.get('mode');
 
+  // If ?logout=1 — always clear session and show form, no matter what
+  if (params.get('logout') === '1') {
+    sessionStorage.removeItem('sai_auth_token');
+    sessionStorage.removeItem('sai_user');
+    sessionStorage.removeItem('sai_launched');
+    if (mode === 'signup') showSignup();
+    return;
+  }
+
+  // Check for a valid, non-expired token
+  var token = sessionStorage.getItem('sai_auth_token');
   if (token) {
-  if (params.get('logout') !== '1') {
-    // Only auto-forward if the user was redirected here from a protected page
-    // (i.e. sai_auth_return was set by the auth guard), NOT if they
-    // navigated here directly from the landing page CTA.
-    const returnTo = sessionStorage.getItem('sai_auth_return');
+    try {
+      var payload = JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+      if (payload.exp && payload.exp * 1000 < Date.now()) {
+        // Token expired — clear it and show the form
+        sessionStorage.removeItem('sai_auth_token');
+        sessionStorage.removeItem('sai_user');
+        token = null;
+      }
+    } catch(e) {
+      // Malformed token — clear and show form
+      sessionStorage.removeItem('sai_auth_token');
+      token = null;
+    }
+  }
+
+  if (token) {
+    // Valid token exists — only auto-forward if redirected from a protected page
+    var returnTo = sessionStorage.getItem('sai_auth_return');
     if (returnTo) {
       sessionStorage.removeItem('sai_auth_return');
       location.replace(returnTo);
       return;
     }
-    // No return destination = user came from landing page CTA → show form
-    // (fall through to display auth form so they can confirm their session)
-  }
-    // ?logout=1 → clear the session and fall through to show the form
+    // User came from landing page CTA with an active session —
+    // clear the old session so they must log in fresh
     sessionStorage.removeItem('sai_auth_token');
     sessionStorage.removeItem('sai_user');
     sessionStorage.removeItem('sai_launched');
   }
 
-  // Open signup tab when CTAs pass ?mode=signup
-  // (signin tab is already active by default)
+  // Show correct tab
   if (mode === 'signup') showSignup();
 })();
 </script>

@@ -2,7 +2,7 @@
  * sw.js — Service Worker: stale-while-revalidate + precache.
  */
 
-const CACHE_NAME = 'spatial-ai-v2';
+const CACHE_NAME = 'spatial-ai-v3';
 
 const PRECACHE_ASSETS = [
   '/index.html',
