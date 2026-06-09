@@ -2,7 +2,7 @@
  * sw.js — Service Worker: stale-while-revalidate + precache.
  */
 
-const CACHE_NAME = 'spatial-ai-v7';
+const CACHE_NAME = 'spatial-ai-v8';
 
 const PRECACHE_ASSETS = [
   '/index.html',
@@ -79,11 +79,16 @@ self.addEventListener('fetch', (event) => {
   // Skip WASM range requests
   if (request.url.endsWith('.wasm') && request.headers.has('range')) return;
 
-  // ── CRITICAL FIX: skip navigation requests that have query strings
-  // (like auth.html?mode=signup) — let them go straight to network
-  // so the redirect mode is never mismatched.
   const url = new URL(request.url);
-  if (request.mode === 'navigate' && url.search) return;
+
+  // ── Skip ALL navigation requests — let the browser handle them natively.
+  // Cloudflare Workers Assets performs redirect normalization (e.g. trailing
+  // slash, canonical paths) on HTML page requests. If the SW intercepts a
+  // navigate request and the CDN returns a redirect, the fetch will fail with:
+  //   "a redirected response was used for a request whose redirect mode is not 'follow'"
+  // because navigate-mode requests default to redirect:'manual' in some
+  // contexts. Bypassing navigate requests entirely is the safest fix.
+  if (request.mode === 'navigate') return;
 
   // Skip cross-origin
   if (url.hostname !== self.location.hostname) return;
