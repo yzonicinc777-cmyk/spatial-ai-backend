@@ -24,6 +24,8 @@
 // If using absolute paths:
 import { requireAuth, getUser } from './js/auth-guard.js';
 
+// Enforce auth before any app logic runs
+await requireAuth();
 
 // Optional: show the user's name in the profile page
 const user = getUser();
