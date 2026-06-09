@@ -1433,17 +1433,17 @@ document.getElementById('forgot-link').addEventListener('click', async function(
   // await callAPI('forgot-password', { email });
 });
 
-/* ─── Check if already logged in ─────────────────────────────── */
+/* ─── Session check on auth page load ────────────────────────── */
 (function() {
-
   const params = new URLSearchParams(location.search);
   const mode   = params.get('mode');
 
-  // If ?logout=1 — always clear session and show form, no matter what
+  // ?logout=1 — always wipe session and show login form
   if (params.get('logout') === '1') {
     sessionStorage.removeItem('sai_auth_token');
     sessionStorage.removeItem('sai_user');
     sessionStorage.removeItem('sai_launched');
+    sessionStorage.removeItem('sai_auth_return');
     if (mode === 'signup') showSignup();
     return;
   }
@@ -1452,36 +1452,58 @@ document.getElementById('forgot-link').addEventListener('click', async function(
   var token = sessionStorage.getItem('sai_auth_token');
   if (token) {
     try {
-      var payload = JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+      var parts = token.split('.');
+      // Pad base64url to valid base64 before decoding
+      var b64 = parts[1].replace(/-/g,'+').replace(/_/g,'/');
+      b64 = b64.padEnd(b64.length + (4 - b64.length % 4) % 4, '=');
+      var payload = JSON.parse(atob(b64));
       if (payload.exp && payload.exp * 1000 < Date.now()) {
-        // Token expired — clear it and show the form
+        // Expired — clear and fall through to show the form
         sessionStorage.removeItem('sai_auth_token');
         sessionStorage.removeItem('sai_user');
         token = null;
       }
     } catch(e) {
-      // Malformed token — clear and show form
+      // Malformed token — clear and show the form
       sessionStorage.removeItem('sai_auth_token');
+      sessionStorage.removeItem('sai_user');
       token = null;
     }
   }
 
   if (token) {
-    // Valid token exists — only auto-forward if redirected from a protected page
+    // ── Valid token present ─────────────────────────────────────
+    // ONLY auto-forward when the user was redirected HERE by
+    // explorer.html's guard (sai_auth_return is set).
+    // In every other case (direct link, nav-bar CTA, bookmark) we
+    // show the auth page — the user clicked it intentionally.
     var returnTo = sessionStorage.getItem('sai_auth_return');
-    if (returnTo) {
+    var cameFromExplorer = returnTo && returnTo.indexOf('explorer.html') !== -1;
+
+    if (cameFromExplorer) {
+      // They were already authenticated and got bounced here by
+      // the explorer guard — send them straight back.
       sessionStorage.removeItem('sai_auth_return');
       location.replace(returnTo);
       return;
     }
-    // User came from landing page CTA with an active session —
-    // clear the old session so they must log in fresh
-    sessionStorage.removeItem('sai_auth_token');
-    sessionStorage.removeItem('sai_user');
-    sessionStorage.removeItem('sai_launched');
+
+    // User arrived via a CTA / nav link while a session was still
+    // alive. Clear the stale return URL (if any) and show the form
+    // so they can sign in with a different account or just confirm.
+    sessionStorage.removeItem('sai_auth_return');
+    // Do NOT clear the token here — the submit handler will
+    // overwrite it. Just show the form normally.
+  } else {
+    // No token — clean up any stale return URL that points
+    // somewhere other than explorer (defensive hygiene)
+    var ret = sessionStorage.getItem('sai_auth_return');
+    if (ret && ret.indexOf('explorer.html') === -1) {
+      sessionStorage.removeItem('sai_auth_return');
+    }
   }
 
-  // Show correct tab
+  // Show the correct tab based on ?mode=
   if (mode === 'signup') showSignup();
 })();
 </script>
