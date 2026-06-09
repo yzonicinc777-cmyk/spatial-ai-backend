@@ -1189,33 +1189,120 @@ font-size: var(--t-base);
 
 /* ─── §14  SIDEBAR NAVIGATION ───────────────────────────────────────────── */
 /* Sidebar toggle button — appears top-left on camera page */
-.sidebar-toggle {
+/* ── Dynamic Island ─────────────────────────────────────────── */
+.dynamic-island {
   position: fixed;
-  top: calc(var(--status-h) + var(--safe-top) + var(--sp-4));
-  left: calc(var(--safe-left) + var(--sp-4));
-  width: 40px;
-  height: 40px;
-  border-radius: var(--r-md);
-  background: rgba(6,11,22,0.74);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  border: 0.5px solid rgba(255,255,255,0.094);
+  top: calc(var(--safe-top) + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: calc(var(--z-modal) + 8);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px 0 10px;
+  border-radius: 999px;
+  background: rgba(4, 8, 18, 0.88);
+  backdrop-filter: blur(28px) saturate(2);
+  -webkit-backdrop-filter: blur(28px) saturate(2);
+  border: 0.5px solid rgba(255,255,255,0.10);
+  box-shadow:
+    0 0 0 0.5px rgba(0,212,255,0.12),
+    0 4px 24px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  transition:
+    width 0.4s cubic-bezier(0.16,1,0.3,1),
+    background 0.3s,
+    box-shadow 0.3s;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: diDrop 0.6s cubic-bezier(0.16,1,0.3,1) 0.5s both;
+}
+
+@keyframes diDrop {
+  from { opacity: 0; transform: translateX(-50%) translateY(-16px) scaleX(0.7); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0)     scaleX(1); }
+}
+
+.dynamic-island:hover {
+  background: rgba(0,212,255,0.07);
+  box-shadow:
+    0 0 0 0.5px rgba(0,212,255,0.3),
+    0 6px 32px rgba(0,212,255,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.09);
+}
+
+/* Hamburger dots (3 stacked lines as dots) */
+.di-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(200,220,255,0.8);
-  z-index: var(--z-camera-ui);
-  box-shadow: var(--shadow-sm);
-  transition:
-    background var(--dur-fast) var(--ease-snappy),
-    color var(--dur-fast),
-    transform var(--dur-fast) var(--ease-bounce);
-  touch-action: manipulation;
-  animation: fadeSlideDown 0.55s var(--ease-expo) 0.7s both;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
 }
 
-.sidebar-toggle:hover  { background: rgba(0,212,255,0.1); color: var(--ion); }
-.sidebar-toggle:active { transform: scale(0.88); }
+.di-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 3.5px;
+}
+
+.di-dots span {
+  display: block;
+  width: 14px;
+  height: 1.5px;
+  border-radius: 2px;
+  background: rgba(200,220,255,0.75);
+  transition: background 0.2s, transform 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+
+.dynamic-island:hover .di-dots span { background: var(--ion); }
+
+/* Context label (page name) */
+.di-context {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(200,220,255,0.7);
+  transition: opacity 0.25s;
+}
+
+.di-icon { font-size: 13px; line-height: 1; }
+
+/* Live indicator dot (pulses while camera is active) */
+.di-live {
+  margin-left: 2px;
+}
+
+.di-live-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--verdant);
+  box-shadow: 0 0 6px var(--verdant);
+  animation: diPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes diPulse {
+  0%, 100% { opacity: 1;    transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.7); }
+}
+
+/* Hide live dot on non-camera pages */
+.di-live-hidden .di-live { display: none; }
+
+/* Old .sidebar-toggle kept as alias — remove if unused */
+.sidebar-toggle { display: none; }
 
 /* Sidebar panel */
 #nav-bar {

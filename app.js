@@ -207,11 +207,24 @@ function _bindEvents() {
 
   // ── Navigation ────────────────────────────────────────────────────────────
   for (const btn of refList('navBtns')) {
-    btn.addEventListener('click', (e) => {
-      const page = btn.dataset.page;
-      if (page) { navigateTo(page); addRippleEffect(e); }
-    });
-  }
+  btn.addEventListener('click', (e) => {
+    const page = btn.dataset.page;
+    if (page) {
+      navigateTo(page);
+      addRippleEffect(e);
+
+      // Update Dynamic Island label + icon
+      const icons  = { camera: '📷', explore: '🗺', profile: '👤', settings: '⚙️' };
+      const labels = { camera: 'Camera', explore: 'Explore', profile: 'Profile', settings: 'Settings' };
+      const diLabel = document.getElementById('di-label');
+      const diIcon  = document.querySelector('.di-icon');
+      const di      = document.getElementById('dynamic-island');
+      if (diLabel) diLabel.textContent = labels[page] || page;
+      if (diIcon)  diIcon.textContent  = icons[page]  || '●';
+      if (di)      di.classList.toggle('di-live-hidden', page !== 'camera');
+    }
+  });
+}
 
   for (const btn of refList('backBtns')) {
     btn.addEventListener('click', () => navigateTo('camera'));
