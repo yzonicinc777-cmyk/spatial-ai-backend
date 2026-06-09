@@ -2,17 +2,16 @@
  * sw.js — Service Worker: stale-while-revalidate + precache.
  */
 
-const CACHE_NAME = 'spatial-ai-v6';
+const CACHE_NAME = 'spatial-ai-v7';
 
 const PRECACHE_ASSETS = [
   '/index.html',
-
   '/explorer.html',
+  '/auth.html',
   '/core.css',
   '/responsive.css',
   '/animations.css',
   '/app.js',
-
   '/js/engine.js',
   '/js/render.js',
   '/js/core.js',
@@ -71,47 +70,57 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
+  // Only handle GET requests
   if (request.method !== 'GET') return;
+
+  // Only handle same-origin requests
   if (!request.url.startsWith(self.location.origin)) return;
+
+  // Skip WASM range requests
   if (request.url.endsWith('.wasm') && request.headers.has('range')) return;
 
+  // ── CRITICAL FIX: skip navigation requests that have query strings
+  // (like auth.html?mode=signup) — let them go straight to network
+  // so the redirect mode is never mismatched.
   const url = new URL(request.url);
-  if (url.hostname !== self.location.hostname) return;
+  if (request.mode === 'navigate' && url.search) return;
 
-  // Navigation guard removed — explorer.html has its own synchronous
-// JS auth gate in <head> that handles all unauthenticated access.
-  // ─────────────────────────────────────────────────────────────
+  // Skip cross-origin
+  if (url.hostname !== self.location.hostname) return;
 
   event.respondWith(
     caches.open(CACHE_NAME).then(async (cache) => {
       const cached = await cache.match(request);
 
-      // FIX: use freshRequest (with redirect:'follow') for the actual fetch,
-      // not the original request — this was the bug; freshRequest was built
-      // but then `fetch(request)` was called instead of `fetch(freshRequest)`.
-      const freshRequest = new Request(request, { redirect: 'follow' });
+      // Always use redirect:'follow' for network fetch
+      const freshRequest = new Request(request.url, {
+        method: request.method,
+        headers: request.headers,
+        redirect: 'follow',
+        credentials: 'same-origin',
+        mode: request.mode === 'navigate' ? 'navigate' : request.mode,
+      });
 
-      const networkFetch = fetch(freshRequest)        // ← was fetch(request), now fetch(freshRequest)
+      const networkFetch = fetch(freshRequest)
         .then((networkResponse) => {
+          // Only cache clean, non-redirected, same-origin responses
           if (
             networkResponse &&
             networkResponse.ok &&
             networkResponse.status === 200 &&
-            networkResponse.type !== 'opaque' &&       // ← added: don't cache opaque responses
-            networkResponse.type !== 'opaqueredirect'  // ← added: don't cache redirect stubs
+            networkResponse.type === 'basic'
           ) {
             cache.put(request, networkResponse.clone());
           }
           return networkResponse;
         })
-        .catch(() => cached);  // network failed → serve from cache
+        .catch(() => cached);
 
       // Stale-while-revalidate: serve cache instantly, revalidate in background
       return cached ?? networkFetch;
     })
   );
 });
-
 
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
