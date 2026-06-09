@@ -1260,7 +1260,7 @@ function _simulateAuth(name, email) {
   const payload = btoa(JSON.stringify({
     sub: email,
     name: name || 'User',
-    exp: Math.floor(Date.now() / 1000) + 86400
+    exp: Math.floor(Date.now() / 1000) + 3600
   }));
   const token = `eyJhbGciOiJIUzI1NiJ9.${payload}.simulated`;
   sessionStorage.setItem('sai_auth_token', token);
@@ -1440,14 +1440,19 @@ document.getElementById('forgot-link').addEventListener('click', async function(
   const mode   = params.get('mode');
 
   if (token) {
-    // Only auto-forward if the user didn't explicitly navigate here to
-    // log out or switch accounts (i.e. no ?logout=1 param).
-    if (params.get('logout') !== '1') {
-      const returnTo = sessionStorage.getItem('sai_auth_return') || 'explorer.html';
+  if (params.get('logout') !== '1') {
+    // Only auto-forward if the user was redirected here from a protected page
+    // (i.e. sai_auth_return was set by the auth guard), NOT if they
+    // navigated here directly from the landing page CTA.
+    const returnTo = sessionStorage.getItem('sai_auth_return');
+    if (returnTo) {
       sessionStorage.removeItem('sai_auth_return');
       location.replace(returnTo);
-      return; // redirect in progress, stop here
+      return;
     }
+    // No return destination = user came from landing page CTA → show form
+    // (fall through to display auth form so they can confirm their session)
+  }
     // ?logout=1 → clear the session and fall through to show the form
     sessionStorage.removeItem('sai_auth_token');
     sessionStorage.removeItem('sai_user');
