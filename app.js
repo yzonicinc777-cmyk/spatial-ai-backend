@@ -22,7 +22,7 @@
  */
 
 // If using absolute paths:
-import { getToken } from './js/auth-guard.js';
+import { getToken, getUser } from './js/auth-guard.js';
 
 // Enforce auth before any app logic runs — check token directly,
 // no network refresh (explorer.html's synchronous gate already handled this)
